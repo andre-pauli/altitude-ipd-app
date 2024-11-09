@@ -9,14 +9,16 @@ import io.flutter.plugin.common.MethodChannel
 import android_serialport_api.hyperlcd.BaseReader
 import android_serialport_api.hyperlcd.SerialEnums
 import android_serialport_api.hyperlcd.SerialPortManager
+import org.json.JSONObject
 import java.nio.charset.StandardCharsets
 
-class MainActivity: FlutterActivity() {
+class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.example.altitude_ipd_app/channel"
     private val EVENT_CHANNEL = "com.example.altitude_ipd_app/receive_channel"
     private val spManager = SerialPortManager.getInstances()
-    private lateinit var baseReader0: BaseReader
+    private lateinit var baseReader: BaseReader
     private var eventSink: EventChannel.EventSink? = null
+    private val isAscii = true
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -26,7 +28,7 @@ class MainActivity: FlutterActivity() {
             when (call.method) {
                 "sendMessage" -> {
                     val message = call.arguments<String>()
-                    sendMessageToPort0(message)
+                    sendMessageToPort(message)
                     result.success("Mensagem enviada: $message")
                 }
                 else -> {
@@ -46,33 +48,64 @@ class MainActivity: FlutterActivity() {
             }
         })
 
-        // Configura o leitor para a porta 0 em UTF-8
-        baseReader0 = object : BaseReader() {
+        // Configura o leitor para a porta em UTF-8
+        baseReader = object : BaseReader() {
             override fun onParse(port: String, isAscii: Boolean, read: String) {
                 runOnUiThread {
                     try {
-                        // Converte o conteúdo recebido diretamente para UTF-8
-                        val utf8Message = String(read.toByteArray(Charsets.UTF_8), Charsets.UTF_8)
-                        Log.d("SERIAL_RECEIVED_0", "Mensagem recebida (UTF-8): $utf8Message")
-                        eventSink?.success(utf8Message) // Envia a mensagem decodificada para o Flutter
+                        Log.d("SERIAL_RECEIVED", "Recebido em hexadecimal: $read")
+//                        val utf8Message = hexToUtf8String(read)
+//                        Log.d("SERIAL_RECEIVED", "Mensagem recebida (UTF-8): $utf8Message")
+
+                        // Verifica se a mensagem é um JSON válido antes de enviar ao Flutter
+                        if (isValidJson(read)) {
+                            eventSink?.success(read)
+                        } else {
+                            Log.e("SERIAL_RECEIVED", "Mensagem recebida não é um JSON válido: $read")
+                        }
                     } catch (e: Exception) {
-                        Log.e("SERIAL_RECEIVED_0", "Erro ao decodificar mensagem: ${e.message}")
+                        Log.e("SERIAL_RECEIVED", "Erro ao decodificar mensagem: ${e.message}")
                     }
                 }
             }
         }
 
-        // Inicia a porta 0 com o leitor, fixado em UTF-8
-        val baudrate0 = 115200
-        spManager.startSerialPort(SerialEnums.Ports.ttyS0, false, baudrate0, 0, baseReader0)
+        // Inicia a porta com o leitor, fixado em UTF-8
+        val baudrate = 115200
+        spManager.startSerialPort(SerialEnums.Ports.ttyS0, isAscii, baudrate, 0, baseReader)
     }
 
-    private fun sendMessageToPort0(message: String?) {
+    private fun hexToUtf8String(hex: String): String {
+        return try {
+            val bytes = hex.chunked(2)
+                .map { it.toInt(16).toByte() }
+                .toByteArray()
+            String(bytes, Charsets.UTF_8)
+        } catch (e: Exception) {
+            Log.e("SERIAL_CONVERSION", "Erro ao converter hexadecimal para UTF-8: ${e.message}")
+            ""
+        }
+    }
+
+
+    private fun isValidJson(json: String): Boolean {
+        return try {
+            JSONObject(json)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun sendMessageToPort(message: String?) {
         message?.let {
-            // Converte a mensagem para bytes UTF-8 e envia
-            val utf8Bytes = it.toByteArray(StandardCharsets.UTF_8)
-            spManager.send(SerialEnums.Ports.ttyS0, false, String(utf8Bytes, StandardCharsets.ISO_8859_1))
-            Log.d("SERIAL_SENT_0", "Mensagem enviada para porta 0: $it")
+            // Verifica se a mensagem é um JSON válido antes de enviar
+            if (isValidJson(it)) {
+                spManager.send(SerialEnums.Ports.ttyS0, isAscii, it)
+                Log.d("SERIAL_SENT", "Mensagem enviada para porta: $it")
+            } else {
+                Log.e("SERIAL_SENT", "Mensagem não é um JSON válido: $it")
+            }
         }
     }
 }
