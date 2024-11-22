@@ -46,7 +46,7 @@ class _IpdHomePageState extends State<IpdHomePage> {
             Row(
               children: [
                 AndarIndicatorCard(
-                  andarAtual: "01",
+                  andarAtual: controller.andarAtual ?? 0,
                 ),
                 SizedBox(
                   width: 32.0 * widthRatio,
@@ -178,6 +178,9 @@ class _IpdHomePageState extends State<IpdHomePage> {
             width: 1080 * widthRatio,
             child: NumbersButtonsWidget(
               numberOfButtons: 4,
+              goToAndar: (andarDestino){
+                controller.enviarComandoIrParaAndar(andarDestino);
+              },
               width: widthRatio,
               height: heightRatio,
             ),

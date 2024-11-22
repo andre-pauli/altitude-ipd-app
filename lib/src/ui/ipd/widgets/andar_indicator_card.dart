@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AndarIndicatorCard extends StatelessWidget {
-  String andarAtual = '00';
+  int andarAtual = 0;
   AndarIndicatorCard({super.key, required this.andarAtual});
 
   @override
@@ -35,7 +35,7 @@ class AndarIndicatorCard extends StatelessWidget {
                 fontWeight: FontWeight.w500),
           ),
           Text(
-            andarAtual,
+            andarAtual.toString(),
             style: TextStyle(
               color: Colors.white,
               fontSize: 340 * heightRatio,
