@@ -46,7 +46,7 @@ class _IpdHomePageState extends State<IpdHomePage> {
             Row(
               children: [
                 AndarIndicatorCard(
-                  andarAtual: controller.andarAtual.toString(),
+                  andarAtual: "01",
                 ),
                 SizedBox(
                   width: 32.0 * widthRatio,
