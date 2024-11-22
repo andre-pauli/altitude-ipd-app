@@ -2,8 +2,15 @@ import 'package:altitude_ipd_app/src/ui/_core/image_path_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+// ignore: must_be_immutable
 class BannerInformationWidget extends StatelessWidget {
-  const BannerInformationWidget({super.key});
+  double capacidadeMaximaKg = 0.0;
+  int capacidadePessoas = 0;
+
+  BannerInformationWidget(
+      {super.key,
+      required this.capacidadeMaximaKg,
+      required this.capacidadePessoas});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +24,7 @@ class BannerInformationWidget extends StatelessWidget {
           children: [
             _buildInfoCard(
               title: 'Capacidade',
-              content: '8 Pessoas',
+              content: '$capacidadePessoas Pessoas',
               width: widthRatio,
               height: heightRatio,
               assetName: ImagePathConstants.iconPeople,
@@ -27,7 +34,7 @@ class BannerInformationWidget extends StatelessWidget {
             ),
             _buildInfoCard(
               title: 'Carga',
-              content: '600 KG',
+              content: '${capacidadeMaximaKg.toStringAsFixed(1)} KG',
               width: widthRatio,
               height: heightRatio,
               assetName: ImagePathConstants.iconWeight,
@@ -98,6 +105,7 @@ class BannerInformationWidget extends StatelessWidget {
   Widget _buildStatusCard({
     required double width,
     required double height,
+    List<String> mensagens = const [],
   }) {
     return Container(
       width: 635 * width,
@@ -124,7 +132,7 @@ class BannerInformationWidget extends StatelessWidget {
             ),
           ),
           Text(
-            'Elevador em movimento, mantenha-se afastado(a) da porta.',
+            mensagens.isNotEmpty ? mensagens.join('\n') : 'Pronto pra uso.',
             style: TextStyle(
                 color: Colors.white,
                 fontSize: 40 * width,

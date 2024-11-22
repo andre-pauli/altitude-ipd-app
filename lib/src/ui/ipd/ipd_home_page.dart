@@ -18,6 +18,7 @@ class IpdHomePage extends StatefulWidget {
 class _IpdHomePageState extends State<IpdHomePage> {
   final IpdHomeController controller = IpdHomeController();
   bool showKeyboard = true;
+  int andarSelecionado = 0;
 
   @override
   void initState() {
@@ -36,6 +37,7 @@ class _IpdHomePageState extends State<IpdHomePage> {
     double screenHeight = MediaQuery.of(context).size.height;
     double widthRatio = screenWidth / 1200;
     double heightRatio = screenHeight / 1920;
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: Padding(
@@ -51,7 +53,10 @@ class _IpdHomePageState extends State<IpdHomePage> {
                 SizedBox(
                   width: 32.0 * widthRatio,
                 ),
-                const BannerInformationWidget(),
+                BannerInformationWidget(
+                  capacidadeMaximaKg: controller.capacidadeMaximaKg ?? 0.0,
+                  capacidadePessoas: controller.capacidadePessoas ?? 0,
+                ),
               ],
             ),
             SizedBox(
@@ -157,48 +162,75 @@ class _IpdHomePageState extends State<IpdHomePage> {
   }
 
   Widget _showKeyboard(double widthRatio, double heightRatio) {
-    return Container(
-      height: 766 * heightRatio,
-      width: 1080 * widthRatio,
-      padding: EdgeInsets.symmetric(
-          horizontal: 137.0 * widthRatio, vertical: 68.0 * heightRatio),
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(08, 255, 255, 255),
-        borderRadius: BorderRadius.circular(16.0 * widthRatio),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.white.withOpacity(0.08),
+    return Stack(
+      children: [
+        Container(
+          height: 766 * heightRatio,
+          width: 1080 * widthRatio,
+          padding: EdgeInsets.symmetric(
+              horizontal: 137.0 * widthRatio, vertical: 68.0 * heightRatio),
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(08, 255, 255, 255),
+            borderRadius: BorderRadius.circular(16.0 * widthRatio),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.white.withOpacity(0.08),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        children: [
-          SizedBox(
-            height: 476 * heightRatio,
-            width: 1080 * widthRatio,
-            child: NumbersButtonsWidget(
-              numberOfButtons: 4,
-              goToAndar: (andarDestino){
-                controller.enviarComandoIrParaAndar(andarDestino);
-              },
-              width: widthRatio,
-              height: heightRatio,
+          child: Column(
+            children: [
+              SizedBox(
+                height: 476 * heightRatio,
+                width: 1080 * widthRatio,
+                child: NumbersButtonsWidget(
+                  numberOfButtons: 4,
+                  selectAndar: (andarDestino) {
+                    andarSelecionado = andarDestino;
+                  },
+                  width: widthRatio,
+                  height: heightRatio,
+                ),
+              ),
+              SizedBox(
+                height: 58.0 * heightRatio,
+              ),
+              CustomButton(
+                label: 'Confirmar',
+                backgroundColor: Colors.grey[800]!,
+                onPressed: () {
+                  if (andarSelecionado != 0) {
+                    controller.enviarComandoIrParaAndar(andarSelecionado);
+                    setState(() {
+                      showKeyboard = !showKeyboard;
+                    });
+                  }
+                },
+                width: 806 * widthRatio,
+                height: 96 * heightRatio,
+                textStyle:
+                    TextStyle(color: Colors.white, fontSize: 40 * widthRatio),
+              )
+            ],
+          ),
+        ),
+        Positioned(
+          right: widthRatio * 32.0,
+          top: heightRatio * 32.0,
+          child: IconButton(
+            onPressed: () {
+              setState(() {
+                showKeyboard = !showKeyboard;
+              });
+            },
+            icon: Icon(
+              Icons.close,
+              color: Colors.white,
+              size: widthRatio * 60.0,
             ),
           ),
-          SizedBox(
-            height: 58.0 * heightRatio,
-          ),
-          CustomButton(
-            label: 'Confirmar',
-            backgroundColor: Colors.grey[800]!,
-            onPressed: () {},
-            width: 806 * widthRatio,
-            height: 96 * heightRatio,
-            textStyle:
-                TextStyle(color: Colors.white, fontSize: 40 * widthRatio),
-          )
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

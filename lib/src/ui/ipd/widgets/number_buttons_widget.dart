@@ -1,44 +1,60 @@
 import 'package:flutter/material.dart';
 
-class NumbersButtonsWidget extends StatelessWidget {
+class NumbersButtonsWidget extends StatefulWidget {
   final int numberOfButtons;
   final double width;
   final double height;
-  final Function(int) goToAndar;
+  final Function(int) selectAndar;
 
   const NumbersButtonsWidget({
     super.key,
     required this.numberOfButtons,
     required this.width,
     required this.height,
-    required this.goToAndar
+    required this.selectAndar,
   });
+
+  @override
+  State<NumbersButtonsWidget> createState() => _NumbersButtonsWidgetState();
+}
+
+class _NumbersButtonsWidgetState extends State<NumbersButtonsWidget> {
+  int selectedButtonIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       child: Wrap(
-        spacing: 72 * width,
-        runSpacing: 40 * height,
-        children: List.generate(numberOfButtons, (index) {
+        spacing: 72 * widget.width,
+        runSpacing: 40 * widget.height,
+        children: List.generate(widget.numberOfButtons, (index) {
           return GestureDetector(
-            onTap: (){
-              goToAndar(index+1);
+            onTap: () {
+              widget.selectAndar(index);
+              setState(() {
+                selectedButtonIndex = index;
+              });
             },
             child: SizedBox(
-              width: 218 * width,
-              height: 218 * height,
+              width: 218 * widget.width,
+              height: 218 * widget.height,
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.grey[800],
                   shape: BoxShape.circle,
+                  border: index != selectedButtonIndex
+                      ? null
+                      : Border.all(
+                          color: const Color(0xFFFEDAC0), // Cor da borda
+                          width: 4.0, // Largura da borda
+                        ),
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   '0${index + 1}',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 122.24 * width,
+                    fontSize: 122.24 * widget.width,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

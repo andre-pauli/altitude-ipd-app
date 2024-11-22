@@ -9,7 +9,8 @@ class IpdHomeController {
 
   int? andarAtual;
   double? temperatura;
-  int? capacidadeMaximaKg;
+  double? capacidadeMaximaKg;
+  int? capacidadePessoas;
   String? direcaoMovimentacao;
   List<String>? mensagens;
   String? nomeObra;
@@ -81,6 +82,9 @@ class IpdHomeController {
         }
         if (dados.containsKey("capacidade_maxima_kg")) {
           capacidadeMaximaKg = dados["capacidade_maxima_kg"];
+        }
+        if (dados.containsKey("capacidade_pessoas")) {
+          capacidadePessoas = dados["capacidade_pessoas"];
         }
         direcaoMovimentacao = dados["direcao_movimentacao"];
         mensagens = dados.containsKey("mensagens")

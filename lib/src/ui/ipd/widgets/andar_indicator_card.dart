@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 class AndarIndicatorCard extends StatelessWidget {
   int andarAtual = 0;
   AndarIndicatorCard({super.key, required this.andarAtual});
@@ -28,7 +29,7 @@ class AndarIndicatorCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
-            'Primeiro andar',
+            _getAndarDescription(andarAtual),
             style: TextStyle(
                 color: Colors.white,
                 fontSize: 42.73 * widthRatio,
@@ -46,4 +47,31 @@ class AndarIndicatorCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String _getAndarDescription(int andarAtual) {
+  String andarDescription = '';
+  switch (andarAtual) {
+    case 1:
+      andarDescription = 'Primeiro andar';
+      break;
+    case 2:
+      andarDescription = 'Segundo andar';
+      break;
+    case 3:
+      andarDescription = 'Terceiro andar';
+      break;
+    case 4:
+      andarDescription = 'Quarto andar';
+      break;
+    case 5:
+      andarDescription = 'Quinto andar';
+      break;
+    case 6:
+      andarDescription = 'Sexto andar';
+      break;
+    default:
+      andarDescription = '';
+  }
+  return andarDescription;
 }
