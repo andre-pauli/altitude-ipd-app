@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 class IpdHomeController {
@@ -6,7 +7,6 @@ class IpdHomeController {
   static const eventChannel =
       EventChannel("com.example.altitude_ipd_app/receive_channel");
 
-  // Variáveis para armazenar os dados recebidos
   int? andarAtual;
   double? temperatura;
   int? capacidadeMaximaKg;
@@ -15,24 +15,23 @@ class IpdHomeController {
   String? nomeObra;
   String? codigoObra;
 
-  // Listener de atualizações
   Function()? onUpdate;
 
   IpdHomeController({this.onUpdate}) {
     startListeningToMessages();
   }
 
-  // Envia uma mensagem usando MethodChannel
   Future<void> sendMessageToNative(Map<String, dynamic> mensagem) async {
     try {
       final String jsonMessage = jsonEncode(mensagem);
       await platform.invokeMethod('sendMessage', jsonMessage);
     } on PlatformException catch (e) {
-      print("Erro ao enviar mensagem para o Android: ${e.message}");
+      if (kDebugMode) {
+        print("Erro ao enviar mensagem para o Android: ${e.message}");
+      }
     }
   }
 
-  // Métodos de envio específicos
   Future<void> enviarComandoIrParaAndar(int andarDestino) async {
     final Map<String, dynamic> mensagem = {
       "tipo": "comando",
@@ -62,23 +61,27 @@ class IpdHomeController {
       final txt = message as String;
       _processarMensagemRecebida(txt);
     }, onError: (error) {
-      print("Erro ao receber mensagem do Android: $error");
+      if (kDebugMode) {
+        print("Erro ao receber mensagem do Android: $error");
+      }
     });
   }
 
   void _processarMensagemRecebida(String message) {
+    print('Mensagem recebida: $message');
     try {
       final Map<String, dynamic> decodedMessage = jsonDecode(message);
       final String? tipo = decodedMessage["tipo"];
       final Map<String, dynamic>? dados = decodedMessage["dados"];
 
       if (tipo == "status" && dados != null) {
-        // Atualiza apenas os campos presentes na mensagem recebida
         if (dados.containsKey("andar_atual")) andarAtual = dados["andar_atual"];
-        if (dados.containsKey("temperatura"))
+        if (dados.containsKey("temperatura")) {
           temperatura = (dados["temperatura"] as num).toDouble();
-        if (dados.containsKey("capacidade_maxima_kg"))
+        }
+        if (dados.containsKey("capacidade_maxima_kg")) {
           capacidadeMaximaKg = dados["capacidade_maxima_kg"];
+        }
         direcaoMovimentacao = dados["direcao_movimentacao"];
         mensagens = dados.containsKey("mensagens")
             ? List<String>.from(dados["mensagens"])
@@ -86,11 +89,12 @@ class IpdHomeController {
         nomeObra = dados["nome_obra"];
         codigoObra = dados["codigo_obra"];
 
-        // Notifica listeners sobre a atualização
         onUpdate?.call();
       }
     } catch (e) {
-      print("Erro ao processar a mensagem recebida: $e");
+      if (kDebugMode) {
+        print("Erro ao processar a mensagem recebida: $e");
+      }
     }
   }
 }
