@@ -99,7 +99,6 @@ class _IpdHomePageState extends State<IpdHomePage> {
                 ),
                 CustomButton(
                   label: 'Abrir porta',
-                  icon: ImagePathConstants.iconSettings,
                   backgroundColor: Colors.grey[800]!,
                   onPressed: () {
                     controller.enviarComandoBooleano(
