@@ -98,10 +98,13 @@ class _IpdHomePageState extends State<IpdHomePage> {
                       TextStyle(color: Colors.white, fontSize: 40 * widthRatio),
                 ),
                 CustomButton(
-                  label: 'Ajustes',
+                  label: 'Abrir porta',
                   icon: ImagePathConstants.iconSettings,
                   backgroundColor: Colors.grey[800]!,
-                  onPressed: () {},
+                  onPressed: () {
+                    controller.enviarComandoBooleano(
+                        acao: "abrir_porta_automatica", estado: true);
+                  },
                   width: 280 * widthRatio,
                   height: 108 * heightRatio,
                   heightIcon: 42 * heightRatio,
