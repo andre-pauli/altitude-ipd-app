@@ -1,9 +1,13 @@
+import 'dart:async';
+
+import 'package:altitude_ipd_app/services/location_service.dart';
+import 'package:altitude_ipd_app/services/weather_service.dart';
 import 'package:altitude_ipd_app/src/ui/_core/image_path_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 // ignore: must_be_immutable
-class BannerInformationWidget extends StatelessWidget {
+class BannerInformationWidget extends StatefulWidget {
   double capacidadeMaximaKg = 0.0;
   int capacidadePessoas = 0;
 
@@ -11,6 +15,48 @@ class BannerInformationWidget extends StatelessWidget {
       {super.key,
       required this.capacidadeMaximaKg,
       required this.capacidadePessoas});
+
+  @override
+  State<BannerInformationWidget> createState() =>
+      _BannerInformationWidgetState();
+}
+
+class _BannerInformationWidgetState extends State<BannerInformationWidget> {
+  final WeatherService _weatherService = WeatherService();
+  final LocationService _locationService = LocationService();
+  Map<String, dynamic>? weatherData;
+  Timer? _timer;
+  @override
+  void initState() {
+    super.initState();
+    fetchWeatherData();
+    _startAutoUpdate();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void fetchWeatherData() async {
+    try {
+      final position = await _locationService.getCurrentLocation();
+      final data = await _weatherService.fetchWeatherByCoordinates(
+          position.latitude, position.longitude);
+      setState(() {
+        weatherData = data;
+      });
+    } catch (e) {
+      print("Erro ao carregar os dados: $e");
+    }
+  }
+
+  void _startAutoUpdate() {
+    _timer = Timer.periodic(const Duration(minutes: 15), (timer) {
+      fetchWeatherData();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +70,7 @@ class BannerInformationWidget extends StatelessWidget {
           children: [
             _buildInfoCard(
               title: 'Capacidade',
-              content: '$capacidadePessoas Pessoas',
+              content: '${widget.capacidadePessoas} Pessoas',
               width: widthRatio,
               height: heightRatio,
               assetName: ImagePathConstants.iconPeople,
@@ -34,7 +80,7 @@ class BannerInformationWidget extends StatelessWidget {
             ),
             _buildInfoCard(
               title: 'Carga',
-              content: '${capacidadeMaximaKg.toStringAsFixed(1)} KG',
+              content: '${widget.capacidadeMaximaKg.toStringAsFixed(1)} KG',
               width: widthRatio,
               height: heightRatio,
               assetName: ImagePathConstants.iconWeight,
@@ -161,31 +207,43 @@ class BannerInformationWidget extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          SvgPicture.asset(
-            ImagePathConstants.iconWeather,
-            height: 49.44 * height,
-          ),
-          Text(
-            '24°',
-            style: TextStyle(fontSize: 80 * width, color: Colors.white),
-          ),
-          Text(
-            'São Paulo',
-            style: TextStyle(
-                fontSize: 28 * width,
-                color: Colors.white,
-                fontWeight: FontWeight.w500),
-          ),
-          Text(
-            'Parcialmente nublado',
-            style: TextStyle(fontSize: 24 * width, color: Colors.white),
-          ),
-        ],
-      ),
+      child: weatherData == null
+          ? const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Center(child: CircularProgressIndicator()),
+                SizedBox(height: 16),
+                Text(
+                  'Carregando dados do clima...',
+                  style: TextStyle(color: Colors.white),
+                )
+              ],
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                SvgPicture.asset(
+                  ImagePathConstants.iconWeather,
+                  height: 49.44 * height,
+                ),
+                Text(
+                  '${weatherData!['main']['temp']}°',
+                  style: TextStyle(fontSize: 50 * width, color: Colors.white),
+                ),
+                Text(
+                  weatherData!['name'],
+                  style: TextStyle(
+                      fontSize: 28 * width,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500),
+                ),
+                Text(
+                  weatherData!['weather'][0]['description'],
+                  style: TextStyle(fontSize: 24 * width, color: Colors.white),
+                ),
+              ],
+            ),
     );
   }
 }

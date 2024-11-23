@@ -4,9 +4,12 @@ import 'package:altitude_ipd_app/src/ui/ipd/widgets/andar_indicator_card.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/banner_information_widget.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/custom_button.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/number_buttons_widget.dart';
+import 'package:altitude_ipd_app/src/ui/telegram_web_view/telegram_web_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:telegram/telegram.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class IpdHomePage extends StatefulWidget {
   const IpdHomePage({super.key});
@@ -84,7 +87,9 @@ class _IpdHomePageState extends State<IpdHomePage> {
                   label: 'SOS',
                   icon: ImagePathConstants.iconEmergency,
                   backgroundColor: Colors.red,
-                  onPressed: () {},
+                  onPressed: () async {
+                    Telegram.send(username: '@andrepaulii', message: 'SOS!');
+                  },
                   width: 280 * widthRatio,
                   height: 108 * heightRatio,
                   heightIcon: 37.47 * heightRatio,
