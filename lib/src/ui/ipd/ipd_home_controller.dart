@@ -9,7 +9,7 @@ class IpdHomeController {
 
   int? andarAtual;
   double? temperatura;
-  double? capacidadeMaximaKg;
+  int? capacidadeMaximaKg;
   int? capacidadePessoas;
   String? direcaoMovimentacao;
   List<String>? mensagens;

@@ -8,13 +8,14 @@ import 'package:flutter_svg/svg.dart';
 
 // ignore: must_be_immutable
 class BannerInformationWidget extends StatefulWidget {
-  double capacidadeMaximaKg = 0.0;
+  int capacidadeMaximaKg = 0;
   int capacidadePessoas = 0;
+  List<String> mensagens = [];
 
   BannerInformationWidget(
       {super.key,
       required this.capacidadeMaximaKg,
-      required this.capacidadePessoas});
+      required this.capacidadePessoas, required this.mensagens});
 
   @override
   State<BannerInformationWidget> createState() =>
@@ -97,7 +98,7 @@ class _BannerInformationWidgetState extends State<BannerInformationWidget> {
         SizedBox(
           height: 32 * heightRatio,
         ),
-        _buildStatusCard(width: widthRatio, height: heightRatio)
+        _buildStatusCard(width: widthRatio, height: heightRatio, mensagens: widget.mensagens)
       ],
     );
   }

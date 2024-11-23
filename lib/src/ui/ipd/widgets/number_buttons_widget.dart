@@ -44,9 +44,9 @@ class _NumbersButtonsWidgetState extends State<NumbersButtonsWidget> {
                   shape: BoxShape.circle,
                   border: (index+1) != selectedButtonIndex
                       ? null
-                      : Border.all(
-                          color: const Color(0xFFFEDAC0), // Cor da borda
-                          width: 4.0, // Largura da borda
+                      : Border.all(//#1C75BC
+                          color: const Color(0xFF1C75BC), // Cor da borda
+                          width: 9.0, // Largura da borda
                         ),
                 ),
                 alignment: Alignment.center,
