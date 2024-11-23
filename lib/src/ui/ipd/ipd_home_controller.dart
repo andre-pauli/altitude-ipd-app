@@ -44,7 +44,8 @@ class IpdHomeController {
     await sendMessageToNative(mensagem);
   }
 
-  Future<void> enviarComandoBooleano(String acao, bool estado) async {
+  Future<void> enviarComandoBooleano(
+      {required String acao, required bool estado}) async {
     final Map<String, dynamic> mensagem = {
       "tipo": "comando",
       "acao": acao,
