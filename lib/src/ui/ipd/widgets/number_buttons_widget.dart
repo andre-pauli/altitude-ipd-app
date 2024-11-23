@@ -30,9 +30,9 @@ class _NumbersButtonsWidgetState extends State<NumbersButtonsWidget> {
         children: List.generate(widget.numberOfButtons, (index) {
           return GestureDetector(
             onTap: () {
-              widget.selectAndar(index);
+              widget.selectAndar(index+1);
               setState(() {
-                selectedButtonIndex = index;
+                selectedButtonIndex = index + 1;
               });
             },
             child: SizedBox(
@@ -42,7 +42,7 @@ class _NumbersButtonsWidgetState extends State<NumbersButtonsWidget> {
                 decoration: BoxDecoration(
                   color: Colors.grey[800],
                   shape: BoxShape.circle,
-                  border: index != selectedButtonIndex
+                  border: (index+1) != selectedButtonIndex
                       ? null
                       : Border.all(
                           color: const Color(0xFFFEDAC0), // Cor da borda
