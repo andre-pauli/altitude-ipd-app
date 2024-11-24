@@ -1,8 +1,10 @@
 import 'package:altitude_ipd_app/src/ui/ipd/ipd_home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:kiosk_mode/kiosk_mode.dart';
 
-void main() {
+void main() async {
+  await startKioskMode();
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const AltitudeIpdApp());
 }
