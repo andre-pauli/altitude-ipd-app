@@ -15,7 +15,8 @@ class BannerInformationWidget extends StatefulWidget {
   BannerInformationWidget(
       {super.key,
       required this.capacidadeMaximaKg,
-      required this.capacidadePessoas, required this.mensagens});
+      required this.capacidadePessoas,
+      required this.mensagens});
 
   @override
   State<BannerInformationWidget> createState() =>
@@ -44,7 +45,7 @@ class _BannerInformationWidgetState extends State<BannerInformationWidget> {
     try {
       final position = await _locationService.getCurrentLocation();
       final data = await _weatherService.fetchWeatherByCoordinates(
-          position.latitude, position.longitude);
+          position.latitude ?? 0.0, position.longitude ?? 0.0);
       setState(() {
         weatherData = data;
       });
@@ -98,7 +99,8 @@ class _BannerInformationWidgetState extends State<BannerInformationWidget> {
         SizedBox(
           height: 32 * heightRatio,
         ),
-        _buildStatusCard(width: widthRatio, height: heightRatio, mensagens: widget.mensagens)
+        _buildStatusCard(
+            width: widthRatio, height: heightRatio, mensagens: widget.mensagens)
       ],
     );
   }

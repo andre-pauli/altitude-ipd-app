@@ -12,6 +12,7 @@ import android_serialport_api.hyperlcd.BaseReader
 import android_serialport_api.hyperlcd.SerialEnums
 import android_serialport_api.hyperlcd.SerialPortManager
 import org.json.JSONObject
+import java.nio.charset.StandardCharsets
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.example.altitude_ipd_app/channel"
@@ -20,15 +21,28 @@ class MainActivity : FlutterActivity() {
     private lateinit var baseReader: BaseReader
     private var eventSink: EventChannel.EventSink? = null
     private val isAscii = true
+    private var kioskModeEnabled = true // Flag para controlar o Kiosk Mode
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Configura o modo imersivo para ocultar a barra de status e a navegação
+        // Configura o modo imersivo para ocultar a barra de status e navegação
         setImmersiveMode()
 
         // Garante que a tela permaneça ligada
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        // Ativar o Kiosk Mode no início
+        enableKioskMode()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        // Sempre que o app voltar ao primeiro plano, reativa o Kiosk Mode, se habilitado
+        if (kioskModeEnabled) {
+            enableKioskMode()
+        }
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -37,6 +51,16 @@ class MainActivity : FlutterActivity() {
         // Configura o MethodChannel para envio de mensagens
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
+                "enableKioskMode" -> {
+                    kioskModeEnabled = true
+                    enableKioskMode()
+                    result.success("Kiosk Mode habilitado")
+                }
+                "disableKioskMode" -> {
+                    kioskModeEnabled = false
+                    disableKioskMode()
+                    result.success("Kiosk Mode desabilitado")
+                }
                 "sendMessage" -> {
                     val message = call.arguments as? String
                     if (message != null) {
@@ -112,6 +136,16 @@ class MainActivity : FlutterActivity() {
                 View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
             )
         }
+    }
+
+    private fun enableKioskMode() {
+        setImmersiveMode()
+        Log.d("KioskMode", "Kiosk Mode habilitado.")
+    }
+
+    private fun disableKioskMode() {
+        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
+        Log.d("KioskMode", "Kiosk Mode desabilitado.")
     }
 
     private fun hexToUtf8String(hex: String): String {
