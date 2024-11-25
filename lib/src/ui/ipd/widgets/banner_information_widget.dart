@@ -179,7 +179,7 @@ class _BannerInformationWidgetState extends State<BannerInformationWidget> {
             ),
           ),
           Text(
-            mensagens.isNotEmpty ? mensagens.join('\n') : 'Pronto pra uso.',
+            mensagens.isNotEmpty ? mensagens.join('\n') : '',
             style: TextStyle(
                 color: Colors.white,
                 fontSize: 40 * width,
