@@ -2,6 +2,8 @@ package com.example.altitude_ipd_app
 
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
@@ -19,6 +21,29 @@ class MainActivity : FlutterActivity() {
     private lateinit var baseReader: BaseReader
     private var eventSink: EventChannel.EventSink? = null
     private val isAscii = true
+    private var kioskModeEnabled = true // Flag para controlar o Kiosk Mode
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // Configura o modo imersivo para ocultar a barra de status e navegação
+        setImmersiveMode()
+
+        // Garante que a tela permaneça ligada
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        // Ativar o Kiosk Mode no início
+        enableKioskMode()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        // Sempre que o app voltar ao primeiro plano, reativa o Kiosk Mode, se habilitado
+        if (kioskModeEnabled) {
+            enableKioskMode()
+        }
+    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -26,10 +51,24 @@ class MainActivity : FlutterActivity() {
         // Configura o MethodChannel para envio de mensagens
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
+                "enableKioskMode" -> {
+                    kioskModeEnabled = true
+                    enableKioskMode()
+                    result.success("Kiosk Mode habilitado")
+                }
+                "disableKioskMode" -> {
+                    kioskModeEnabled = false
+                    disableKioskMode()
+                    result.success("Kiosk Mode desabilitado")
+                }
                 "sendMessage" -> {
-                    val message = call.arguments<String>()
-                    sendMessageToPort(message)
-                    result.success("Mensagem enviada: $message")
+                    val message = call.arguments as? String
+                    if (message != null) {
+                        sendMessageToPort(message)
+                        result.success("Mensagem enviada: $message")
+                    } else {
+                        result.error("INVALID_ARGUMENT", "Mensagem nula ou inválida", null)
+                    }
                 }
                 else -> {
                     result.notImplemented()
@@ -54,17 +93,17 @@ class MainActivity : FlutterActivity() {
                 runOnUiThread {
                     try {
                         Log.d("SERIAL_RECEIVED", "Recebido em hexadecimal: $read")
-//                        val utf8Message = hexToUtf8String(read)
-//                        Log.d("SERIAL_RECEIVED", "Mensagem recebida (UTF-8): $utf8Message")
+                        val utf8Message = hexToUtf8String(read)
+                        Log.d("SERIAL_RECEIVED", "Mensagem recebida (UTF-8): $utf8Message")
 
                         // Verifica se a mensagem é um JSON válido antes de enviar ao Flutter
-                        if (isValidJson(read)) {
-                            eventSink?.success(read)
+                        if (isValidJson(utf8Message)) {
+                            eventSink?.success(utf8Message)
                         } else {
-                            Log.e("SERIAL_RECEIVED", "Mensagem recebida não é um JSON válido: $read")
+                            Log.e("SERIAL_RECEIVED", "Mensagem recebida não é um JSON válido: $utf8Message")
                         }
                     } catch (e: Exception) {
-                        Log.e("SERIAL_RECEIVED", "Erro ao decodificar mensagem: ${e.message}")
+                        Log.e("SERIAL_RECEIVED", "Erro ao processar mensagem: ${e.message}")
                     }
                 }
             }
@@ -73,6 +112,40 @@ class MainActivity : FlutterActivity() {
         // Inicia a porta com o leitor, fixado em UTF-8
         val baudrate = 115200
         spManager.startSerialPort(SerialEnums.Ports.ttyS0, isAscii, baudrate, 0, baseReader)
+    }
+
+    private fun setImmersiveMode() {
+        val decorView = window.decorView
+        decorView.systemUiVisibility = (
+            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+            View.SYSTEM_UI_FLAG_FULLSCREEN or
+            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        )
+
+        // Listener para restaurar o modo imersivo ao sair do foco
+        decorView.setOnSystemUiVisibilityChangeListener {
+            decorView.systemUiVisibility = (
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                View.SYSTEM_UI_FLAG_FULLSCREEN or
+                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            )
+        }
+    }
+
+    private fun enableKioskMode() {
+        setImmersiveMode()
+        Log.d("KioskMode", "Kiosk Mode habilitado.")
+    }
+
+    private fun disableKioskMode() {
+        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
+        Log.d("KioskMode", "Kiosk Mode desabilitado.")
     }
 
     private fun hexToUtf8String(hex: String): String {
@@ -87,19 +160,18 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-
     private fun isValidJson(json: String): Boolean {
         return try {
             JSONObject(json)
             true
         } catch (e: Exception) {
+            Log.e("JSON_VALIDATION", "Erro ao validar JSON: ${e.message}")
             false
         }
     }
 
     private fun sendMessageToPort(message: String?) {
         message?.let {
-            // Verifica se a mensagem é um JSON válido antes de enviar
             if (isValidJson(it)) {
                 spManager.send(SerialEnums.Ports.ttyS0, isAscii, it)
                 Log.d("SERIAL_SENT", "Mensagem enviada para porta: $it")

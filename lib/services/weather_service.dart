@@ -8,10 +8,8 @@ class WeatherService {
 
   Future<Map<String, dynamic>> fetchWeatherByCoordinates(
       double latitude, double longitude) async {
-    latitude = 21.5332239;
-    longitude = -48.3870497;
     final url = Uri.parse(
-        '$baseUrl?lat=-21.5332239&lon=-48.3870497&appid=$apiKey&units=metric&lang=pt');
+        '$baseUrl?lat=$latitude&lon=$longitude&appid=$apiKey&units=metric&lang=pt');
     final response = await http.get(url);
 
     if (response.statusCode == 200) {

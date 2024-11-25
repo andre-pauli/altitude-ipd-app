@@ -4,12 +4,10 @@ import 'package:altitude_ipd_app/src/ui/ipd/widgets/andar_indicator_card.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/banner_information_widget.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/custom_button.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/number_buttons_widget.dart';
-import 'package:altitude_ipd_app/src/ui/telegram_web_view/telegram_web_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
-// import 'package:telegram/telegram.dart';
-// import 'package:url_launcher/url_launcher.dart';
+import 'package:kiosk_mode/kiosk_mode.dart';
 
 class IpdHomePage extends StatefulWidget {
   const IpdHomePage({super.key});
@@ -88,9 +86,7 @@ class _IpdHomePageState extends State<IpdHomePage> {
                   label: 'SOS',
                   icon: ImagePathConstants.iconEmergency,
                   backgroundColor: Colors.red,
-                  onPressed: () async {
-                    // Telegram.send(username: '@andrepaulii', message: 'SOS!');
-                  },
+                  onPressed: () async {},
                   width: 280 * widthRatio,
                   height: 108 * heightRatio,
                   heightIcon: 37.47 * heightRatio,
@@ -130,10 +126,15 @@ class _IpdHomePageState extends State<IpdHomePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                SizedBox(
-                  width: 268.3 * widthRatio,
-                  height: 107.89 * heightRatio,
-                  child: SvgPicture.asset(ImagePathConstants.altitudeLogo),
+                GestureDetector(
+                  onLongPress: () async {
+                    await stopKioskMode();
+                  },
+                  child: SizedBox(
+                    width: 268.3 * widthRatio,
+                    height: 107.89 * heightRatio,
+                    child: SvgPicture.asset(ImagePathConstants.altitudeLogo),
+                  ),
                 ),
                 Text('1.0.0',
                     style: TextStyle(
