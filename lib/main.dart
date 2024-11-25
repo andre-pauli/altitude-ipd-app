@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:kiosk_mode/kiosk_mode.dart';
 
 void main() async {
-  await startKioskMode();
   WidgetsFlutterBinding.ensureInitialized();
+  await startKioskMode();
   runApp(const AltitudeIpdApp());
 }
 
