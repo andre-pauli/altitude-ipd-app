@@ -65,30 +65,36 @@ class _CallPageState extends State<CallPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Call Room: $room')),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: RTCVideoView(
-                    _localRenderer,
-                    mirror: true,
-                  ),
-                ),
-                Expanded(
-                  child: RTCVideoView(
-                    _remoteRenderer,
-                  ),
-                ),
-              ],
+          // Vídeo remoto ocupando toda a tela
+          RTCVideoView(
+            _remoteRenderer,
+          ),
+          // Vídeo local em uma janela flutuante
+          Positioned(
+            right: 20, // Margem do canto direito
+            bottom: 0, // Margem do canto inferior
+            width: 150, // Largura do vídeo local
+            height: 200, // Altura do vídeo local
+            child: Container(
+              decoration: BoxDecoration(
+                border:
+                    Border.all(color: Colors.white, width: 2), // Borda branca
+                borderRadius: BorderRadius.circular(8), // Cantos arredondados
+              ),
+              child: RTCVideoView(
+                _localRenderer,
+                mirror: true,
+              ),
             ),
           ),
-          ElevatedButton(
-            onPressed: _startCall,
-            child: const Text('Iniciar Chamada'),
-          ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _startCall,
+        tooltip: 'Iniciar Chamada',
+        child: const Icon(Icons.phone),
       ),
     );
   }

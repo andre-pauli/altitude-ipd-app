@@ -217,7 +217,7 @@ class _BannerInformationWidgetState extends State<BannerInformationWidget> {
                 Center(child: CircularProgressIndicator()),
                 SizedBox(height: 16),
                 Text(
-                  'Carregando dados do clima...',
+                  '..',
                   style: TextStyle(color: Colors.white),
                 )
               ],
