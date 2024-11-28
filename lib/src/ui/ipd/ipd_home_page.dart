@@ -4,6 +4,7 @@ import 'package:altitude_ipd_app/src/ui/ipd/widgets/andar_indicator_card.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/banner_information_widget.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/custom_button.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/number_buttons_widget.dart';
+import 'package:altitude_ipd_app/src/ui/sos/sos_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -86,7 +87,13 @@ class _IpdHomePageState extends State<IpdHomePage> {
                   label: 'SOS',
                   icon: ImagePathConstants.iconEmergency,
                   backgroundColor: Colors.red,
-                  onPressed: () async {},
+                  onPressed: () async {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const SosPage(),
+                      ),
+                    );
+                  },
                   width: 280 * widthRatio,
                   height: 108 * heightRatio,
                   heightIcon: 37.47 * heightRatio,
