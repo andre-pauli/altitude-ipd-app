@@ -111,6 +111,19 @@ class SignalingService {
     });
   }
 
+  Future<void> disconnect() async {
+    await _socket.disconnect();
+    await _socket.close();
+    await _peerConnection?.close();
+    _peerConnection = null;
+
+    ;
+    _localStream?.getTracks().forEach((track) async {
+      await track.stop();
+    });
+    _localStream = null;
+  }
+
   MediaStream? get localStream => _localStream;
 
   Future<void> _checkPermissions() async {

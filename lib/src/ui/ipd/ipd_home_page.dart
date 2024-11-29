@@ -1,10 +1,11 @@
+import 'package:altitude_ipd_app/src/ui/_core/custom_dialog.dart';
 import 'package:altitude_ipd_app/src/ui/_core/image_path_constants.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/ipd_home_controller.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/andar_indicator_card.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/banner_information_widget.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/custom_button.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/number_buttons_widget.dart';
-import 'package:altitude_ipd_app/src/ui/sos/sos_page.dart';
+import 'package:altitude_ipd_app/src/ui/sos/call_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -25,6 +26,7 @@ class _IpdHomePageState extends State<IpdHomePage> {
   @override
   void initState() {
     super.initState();
+    _fakePopulateFields();
     controller.onUpdate = () {
       setState(() {});
     };
@@ -88,9 +90,22 @@ class _IpdHomePageState extends State<IpdHomePage> {
                   icon: ImagePathConstants.iconEmergency,
                   backgroundColor: Colors.red,
                   onPressed: () async {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const SosPage(),
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) => CustomDialog(
+                        title: 'Ligar para o suporte?',
+                        textContent:
+                            'Deseja realmente ligar para o suporte da Altidude Elevadores?',
+                        onPrimaryPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const CallPage(),
+                            ),
+                          );
+                        },
+                        onSecondaryPressed: () {
+                          Navigator.of(context).pop();
+                        },
                       ),
                     );
                   },
@@ -155,6 +170,13 @@ class _IpdHomePageState extends State<IpdHomePage> {
         ),
       ),
     );
+  }
+
+  void _fakePopulateFields() {
+    setState(() {
+      controller.capacidadeMaximaKg = 300;
+      controller.capacidadePessoas = 3;
+    });
   }
 
   Widget _showPublicityCard(double widthRatio, double heightRatio) {

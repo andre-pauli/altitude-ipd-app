@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:altitude_ipd_app/services/location_service.dart';
-import 'package:altitude_ipd_app/services/weather_service.dart';
+import 'package:altitude_ipd_app/src/services/location_service.dart';
+import 'package:altitude_ipd_app/src/services/weather_service.dart';
 import 'package:altitude_ipd_app/src/ui/_core/image_path_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
