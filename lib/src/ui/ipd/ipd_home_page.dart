@@ -200,7 +200,7 @@ class _IpdHomePageState extends State<IpdHomePage> {
                 height: 476 * heightRatio,
                 width: 1080 * widthRatio,
                 child: NumbersButtonsWidget(
-                  numberOfButtons: 4,
+                  numberOfButtons: 3,
                   selectAndar: (andarDestino) {
                     andarSelecionado = andarDestino;
                   },
