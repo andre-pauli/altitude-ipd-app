@@ -36,24 +36,6 @@ class _AltitudeIpdAppState extends State<AltitudeIpdApp>
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed) {
-      _enableKioskMode();
-    }
-  }
-
-  Future<void> _enableKioskMode() async {
-    try {
-      await startKioskMode();
-    } catch (e) {
-      if (kDebugMode) {
-        print('Erro ao reativar o Kiosk Mode: $e');
-      }
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Altitude IPD',

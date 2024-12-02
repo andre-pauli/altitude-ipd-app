@@ -4,12 +4,14 @@ import 'package:altitude_ipd_app/src/ui/ipd/ipd_home_controller.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/andar_indicator_card.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/banner_information_widget.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/custom_button.dart';
+import 'package:altitude_ipd_app/src/ui/ipd/widgets/looping_video_player.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/number_buttons_widget.dart';
 import 'package:altitude_ipd_app/src/ui/sos/call_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:kiosk_mode/kiosk_mode.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class IpdHomePage extends StatefulWidget {
   const IpdHomePage({super.key});
@@ -22,6 +24,7 @@ class _IpdHomePageState extends State<IpdHomePage> {
   final IpdHomeController controller = IpdHomeController();
   bool showKeyboard = true;
   int andarSelecionado = 0;
+  String version = '';
 
   @override
   void initState() {
@@ -158,10 +161,21 @@ class _IpdHomePageState extends State<IpdHomePage> {
                     child: SvgPicture.asset(ImagePathConstants.altitudeLogo),
                   ),
                 ),
-                Text('1.0.0',
-                    style: TextStyle(
-                        color: Colors.white, fontSize: 28.0 * widthRatio)),
-                Text('Ultima revisão: 10/11/2024',
+                Column(
+                  children: [
+                    Text(version.isEmpty ? '' : version,
+                        style: TextStyle(
+                            color: Colors.white, fontSize: 28.0 * widthRatio)),
+                    const SizedBox(
+                      height: 10.0,
+                    ),
+                    Text('SAC 17-98215-9000',
+                        style: TextStyle(
+                            color: Colors.white, fontSize: 28.0 * widthRatio)),
+                  ],
+                ),
+                Text('Ultima manutenção: \n04/12/2024',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                         color: Colors.white, fontSize: 28.0 * widthRatio)),
               ],
@@ -172,10 +186,13 @@ class _IpdHomePageState extends State<IpdHomePage> {
     );
   }
 
-  void _fakePopulateFields() {
+  void _fakePopulateFields() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+
     setState(() {
-      controller.capacidadeMaximaKg = 300;
-      controller.capacidadePessoas = 3;
+      version = packageInfo.version;
+      controller.capacidadeMaximaKg = 320;
+      controller.capacidadePessoas = 4;
     });
   }
 
@@ -185,7 +202,8 @@ class _IpdHomePageState extends State<IpdHomePage> {
         Container(
           width: 1080 * widthRatio,
           height: 445 * heightRatio,
-          color: Colors.blue,
+          child:
+              LoopingVideoPlayer(videoPath: 'assets/videos/video_altitude.mp4'),
         ),
         SizedBox(
           height: 18.0 * heightRatio,

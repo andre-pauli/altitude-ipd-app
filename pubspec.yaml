@@ -22,6 +22,8 @@ dependencies:
   sdp_transform: ^0.3.2
   socket_io_client: ^3.0.2
   flutter_webrtc: ^0.12.2
+  package_info_plus: ^8.1.1
+  video_player: ^2.9.2
 
 dev_dependencies:
   flutter_test:
@@ -50,6 +52,7 @@ flutter:
   assets:
     - assets/images/png/
     - assets/images/svg/
+    - assets/videos/video_altitude.mp4
 
   fonts:
     - family: Roboto
