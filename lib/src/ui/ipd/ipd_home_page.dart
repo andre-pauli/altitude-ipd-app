@@ -22,7 +22,7 @@ class IpdHomePage extends StatefulWidget {
 
 class _IpdHomePageState extends State<IpdHomePage> {
   final IpdHomeController controller = IpdHomeController();
-  bool showKeyboard = true;
+  bool showKeyboard = false;
   int andarSelecionado = 0;
   String version = '';
 
