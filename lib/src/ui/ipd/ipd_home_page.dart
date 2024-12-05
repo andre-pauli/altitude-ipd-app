@@ -4,6 +4,7 @@ import 'package:altitude_ipd_app/src/ui/ipd/ipd_home_controller.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/andar_indicator_card.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/banner_information_widget.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/custom_button.dart';
+import 'package:altitude_ipd_app/src/ui/ipd/widgets/image_carousel_widget.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/looping_video_player.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/number_buttons_widget.dart';
 import 'package:altitude_ipd_app/src/ui/sos/call_page.dart';
@@ -33,6 +34,8 @@ class _IpdHomePageState extends State<IpdHomePage> {
     controller.onUpdate = () {
       setState(() {});
     };
+    controller.enviarComandoBooleano(
+        acao: "buscar_dados_iniciais", estado: true);
   }
 
   @override
@@ -208,11 +211,7 @@ class _IpdHomePageState extends State<IpdHomePage> {
         SizedBox(
           height: 18.0 * heightRatio,
         ),
-        Container(
-          width: 1080 * widthRatio,
-          height: 302 * heightRatio,
-          color: Colors.white,
-        ),
+        ImageCarousel(widthRatio: widthRatio, heightRatio: heightRatio)
       ],
     );
   }

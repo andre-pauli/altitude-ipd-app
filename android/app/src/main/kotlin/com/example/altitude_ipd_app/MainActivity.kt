@@ -1,4 +1,5 @@
 package com.example.altitude_ipd_app
+import android.content.pm.ActivityInfo
 
 import android.os.Bundle
 import android.util.Log
@@ -31,6 +32,8 @@ class MainActivity : FlutterActivity() {
 
         // Garante que a tela permaneça ligada
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT
 
         // Ativar o Kiosk Mode no início
         enableKioskMode()
