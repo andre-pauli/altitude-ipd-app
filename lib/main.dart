@@ -7,6 +7,7 @@ import 'package:kiosk_mode/kiosk_mode.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await startKioskMode();
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   runApp(const AltitudeIpdApp());
 }
 
