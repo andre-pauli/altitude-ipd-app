@@ -1,13 +1,18 @@
+import 'package:altitude_ipd_app/src/ui/_core/custom_dialog.dart';
 import 'package:altitude_ipd_app/src/ui/_core/image_path_constants.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/ipd_home_controller.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/andar_indicator_card.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/banner_information_widget.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/custom_button.dart';
+import 'package:altitude_ipd_app/src/ui/ipd/widgets/image_carousel_widget.dart';
+import 'package:altitude_ipd_app/src/ui/ipd/widgets/looping_video_player.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/number_buttons_widget.dart';
+import 'package:altitude_ipd_app/src/ui/sos/call_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:kiosk_mode/kiosk_mode.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class IpdHomePage extends StatefulWidget {
   const IpdHomePage({super.key});
@@ -18,15 +23,19 @@ class IpdHomePage extends StatefulWidget {
 
 class _IpdHomePageState extends State<IpdHomePage> {
   final IpdHomeController controller = IpdHomeController();
-  bool showKeyboard = true;
+  bool showKeyboard = false;
   int andarSelecionado = 0;
+  String version = '';
 
   @override
   void initState() {
     super.initState();
+    _fakePopulateFields();
     controller.onUpdate = () {
       setState(() {});
     };
+    controller.enviarComandoBooleano(
+        acao: "buscar_dados_iniciais", estado: true);
   }
 
   @override
@@ -86,7 +95,26 @@ class _IpdHomePageState extends State<IpdHomePage> {
                   label: 'SOS',
                   icon: ImagePathConstants.iconEmergency,
                   backgroundColor: Colors.red,
-                  onPressed: () async {},
+                  onPressed: () async {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) => CustomDialog(
+                        title: 'Ligar para o suporte?',
+                        textContent:
+                            'Deseja realmente ligar para o suporte da Altidude Elevadores?',
+                        onPrimaryPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const CallPage(),
+                            ),
+                          );
+                        },
+                        onSecondaryPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    );
+                  },
                   width: 280 * widthRatio,
                   height: 108 * heightRatio,
                   heightIcon: 37.47 * heightRatio,
@@ -136,10 +164,21 @@ class _IpdHomePageState extends State<IpdHomePage> {
                     child: SvgPicture.asset(ImagePathConstants.altitudeLogo),
                   ),
                 ),
-                Text('1.0.0',
-                    style: TextStyle(
-                        color: Colors.white, fontSize: 28.0 * widthRatio)),
-                Text('Ultima revisão: 10/11/2024',
+                Column(
+                  children: [
+                    Text(version.isEmpty ? '' : version,
+                        style: TextStyle(
+                            color: Colors.white, fontSize: 28.0 * widthRatio)),
+                    const SizedBox(
+                      height: 10.0,
+                    ),
+                    Text('SAC 17-98215-9000',
+                        style: TextStyle(
+                            color: Colors.white, fontSize: 28.0 * widthRatio)),
+                  ],
+                ),
+                Text('Ultima manutenção: \n04/12/2024',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                         color: Colors.white, fontSize: 28.0 * widthRatio)),
               ],
@@ -150,22 +189,29 @@ class _IpdHomePageState extends State<IpdHomePage> {
     );
   }
 
+  void _fakePopulateFields() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+
+    setState(() {
+      version = packageInfo.version;
+      controller.capacidadeMaximaKg = 320;
+      controller.capacidadePessoas = 4;
+    });
+  }
+
   Widget _showPublicityCard(double widthRatio, double heightRatio) {
     return Column(
       children: [
         Container(
           width: 1080 * widthRatio,
           height: 445 * heightRatio,
-          color: Colors.blue,
+          child:
+              LoopingVideoPlayer(videoPath: 'assets/videos/video_altitude.mp4'),
         ),
         SizedBox(
           height: 18.0 * heightRatio,
         ),
-        Container(
-          width: 1080 * widthRatio,
-          height: 302 * heightRatio,
-          color: Colors.white,
-        ),
+        ImageCarousel(widthRatio: widthRatio, heightRatio: heightRatio)
       ],
     );
   }
@@ -193,7 +239,7 @@ class _IpdHomePageState extends State<IpdHomePage> {
                 height: 476 * heightRatio,
                 width: 1080 * widthRatio,
                 child: NumbersButtonsWidget(
-                  numberOfButtons: 4,
+                  numberOfButtons: 3,
                   selectAndar: (andarDestino) {
                     andarSelecionado = andarDestino;
                   },

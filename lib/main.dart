@@ -26,7 +26,7 @@ class _AltitudeIpdAppState extends State<AltitudeIpdApp>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
     ]);
   }
 
@@ -34,24 +34,6 @@ class _AltitudeIpdAppState extends State<AltitudeIpdApp>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed) {
-      _enableKioskMode();
-    }
-  }
-
-  Future<void> _enableKioskMode() async {
-    try {
-      await startKioskMode();
-    } catch (e) {
-      if (kDebugMode) {
-        print('Erro ao reativar o Kiosk Mode: $e');
-      }
-    }
   }
 
   @override

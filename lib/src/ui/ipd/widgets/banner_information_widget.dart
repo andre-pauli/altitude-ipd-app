@@ -1,7 +1,6 @@
 import 'dart:async';
 
-import 'package:altitude_ipd_app/services/location_service.dart';
-import 'package:altitude_ipd_app/services/weather_service.dart';
+import 'package:altitude_ipd_app/src/services/weather_service.dart';
 import 'package:altitude_ipd_app/src/ui/_core/image_path_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -25,7 +24,6 @@ class BannerInformationWidget extends StatefulWidget {
 
 class _BannerInformationWidgetState extends State<BannerInformationWidget> {
   final WeatherService _weatherService = WeatherService();
-  final LocationService _locationService = LocationService();
   Map<String, dynamic>? weatherData;
   Timer? _timer;
   @override
@@ -43,9 +41,8 @@ class _BannerInformationWidgetState extends State<BannerInformationWidget> {
 
   void fetchWeatherData() async {
     try {
-      final position = await _locationService.getCurrentLocation();
-      final data = await _weatherService.fetchWeatherByCoordinates(
-          position.latitude ?? 0.0, position.longitude ?? 0.0);
+      final data =
+          await _weatherService.fetchWeatherByCoordinates(-18.95018, -48.28105);
       setState(() {
         weatherData = data;
       });
@@ -82,7 +79,7 @@ class _BannerInformationWidgetState extends State<BannerInformationWidget> {
             ),
             _buildInfoCard(
               title: 'Carga',
-              content: '${widget.capacidadeMaximaKg.toStringAsFixed(1)} KG',
+              content: '${widget.capacidadeMaximaKg} KG',
               width: widthRatio,
               height: heightRatio,
               assetName: ImagePathConstants.iconWeight,
@@ -217,7 +214,7 @@ class _BannerInformationWidgetState extends State<BannerInformationWidget> {
                 Center(child: CircularProgressIndicator()),
                 SizedBox(height: 16),
                 Text(
-                  'Carregando dados do clima...',
+                  '..',
                   style: TextStyle(color: Colors.white),
                 )
               ],

@@ -3,6 +3,7 @@ package com.example.altitude_ipd_app
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
@@ -11,6 +12,7 @@ import android_serialport_api.hyperlcd.BaseReader
 import android_serialport_api.hyperlcd.SerialEnums
 import android_serialport_api.hyperlcd.SerialPortManager
 import org.json.JSONObject
+import java.nio.charset.StandardCharsets
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.example.altitude_ipd_app/channel"
@@ -23,6 +25,26 @@ class MainActivity : FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableKioskMode() // Habilita o modo quiosque ao criar a atividade
+
+        // Configura o modo imersivo para ocultar a barra de status e navegação
+        setImmersiveMode()
+
+        // Garante que a tela permaneça ligada
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT
+
+        // Ativar o Kiosk Mode no início
+        enableKioskMode()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        // Sempre que o app voltar ao primeiro plano, reativa o Kiosk Mode, se habilitado
+        if (kioskModeEnabled) {
+            enableKioskMode()
+        }
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
