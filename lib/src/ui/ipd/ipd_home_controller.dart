@@ -3,6 +3,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 class IpdHomeController {
+  static final IpdHomeController _instance = IpdHomeController._internal();
+
+  factory IpdHomeController() => _instance;
+
+  IpdHomeController._internal() {
+    startListeningToMessages();
+  }
+
   static const platform = MethodChannel("com.example.altitude_ipd_app/channel");
   static const eventChannel =
       EventChannel("com.example.altitude_ipd_app/receive_channel");
@@ -22,10 +30,7 @@ class IpdHomeController {
   };
 
   Function()? onUpdate;
-
-  IpdHomeController({this.onUpdate}) {
-    startListeningToMessages();
-  }
+  Function()? onUpdateWeater;
 
   Future<void> sendMessageToNative(Map<String, dynamic> mensagem) async {
     try {
@@ -108,6 +113,10 @@ class IpdHomeController {
         }
         if (dados.containsKey("longitude")) {
           longitude = dados["longitude"];
+        }
+
+        if (latitude != null && longitude != null) {
+          onUpdateWeater?.call();
         }
 
         onUpdate?.call();

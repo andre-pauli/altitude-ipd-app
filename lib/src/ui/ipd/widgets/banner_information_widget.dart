@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:altitude_ipd_app/src/services/weather_service.dart';
 import 'package:altitude_ipd_app/src/ui/_core/image_path_constants.dart';
+import 'package:altitude_ipd_app/src/ui/ipd/ipd_home_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -28,6 +29,7 @@ class BannerInformationWidget extends StatefulWidget {
 
 class _BannerInformationWidgetState extends State<BannerInformationWidget> {
   final WeatherService _weatherService = WeatherService();
+  final IpdHomeController controller = IpdHomeController();
   Map<String, dynamic>? weatherData;
   Timer? _timer;
   @override
@@ -41,6 +43,7 @@ class _BannerInformationWidgetState extends State<BannerInformationWidget> {
   void dispose() {
     _timer?.cancel();
     super.dispose();
+    controller.onUpdateWeater = fetchWeatherData;
   }
 
   void fetchWeatherData() async {
