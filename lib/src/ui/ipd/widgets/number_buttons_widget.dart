@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class NumbersButtonsWidget extends StatefulWidget {
-  final Map<int, dynamic> andares;
+  final Map<String, dynamic> andares;
   final double width;
   final double height;
   final Function(int) selectAndar;
@@ -52,7 +52,7 @@ class _NumbersButtonsWidgetState extends State<NumbersButtonsWidget> {
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  widget.andares[index + 1]['andar'].toString(),
+                  widget.andares[(index + 1).toString()]['andar'].toString(),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 122.24 * widget.width,

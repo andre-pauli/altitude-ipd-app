@@ -15,9 +15,8 @@ class IpdHomeController {
   List<String>? mensagens;
   String? nomeObra;
   String? codigoObra;
-  Map<int, dynamic> andares = {
-    1: {"andar": "0", "descricao": "Térreo"},
-    2: {"andar": "1", "descricao": "1 Andar"},
+  Map<String, dynamic> andares = {
+    "1": {"andar": "0", "descricao": "Andar inicial"},
   };
 
   Function()? onUpdate;
