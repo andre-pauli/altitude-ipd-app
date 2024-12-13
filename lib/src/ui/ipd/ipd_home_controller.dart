@@ -104,10 +104,10 @@ class IpdHomeController {
         }
 
         if (dados.containsKey("latitude")) {
-          andares = dados["latitude"];
+          latitude = dados["latitude"];
         }
         if (dados.containsKey("longitude")) {
-          andares = dados["longitude"];
+          longitude = dados["longitude"];
         }
 
         onUpdate?.call();

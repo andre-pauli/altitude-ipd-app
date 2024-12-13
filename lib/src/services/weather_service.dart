@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:http/http.dart' as http;
 
 class WeatherService {
@@ -8,6 +9,7 @@ class WeatherService {
 
   Future<Map<String, dynamic>> fetchWeatherByCoordinates(
       double latitude, double longitude) async {
+    log('$baseUrl?lat=$latitude&lon=$longitude&appid=$apiKey&units=metric&lang=pt');
     final url = Uri.parse(
         '$baseUrl?lat=$latitude&lon=$longitude&appid=$apiKey&units=metric&lang=pt');
     final response = await http.get(url);
