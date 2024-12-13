@@ -11,6 +11,8 @@ class IpdHomeController {
   double? temperatura;
   int? capacidadeMaximaKg;
   int? capacidadePessoas;
+  double? latitude;
+  double? longitude;
   String? direcaoMovimentacao;
   List<String>? mensagens;
   String? nomeObra;
@@ -99,6 +101,13 @@ class IpdHomeController {
 
         if (dados.containsKey("andares")) {
           andares = dados["andares"];
+        }
+
+        if (dados.containsKey("latitude")) {
+          andares = dados["latitude"];
+        }
+        if (dados.containsKey("longitude")) {
+          andares = dados["longitude"];
         }
 
         onUpdate?.call();

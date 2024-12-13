@@ -9,12 +9,16 @@ import 'package:flutter_svg/svg.dart';
 class BannerInformationWidget extends StatefulWidget {
   int capacidadeMaximaKg = 0;
   int capacidadePessoas = 0;
+  double latitude = 0;
+  double longitude = 0;
   List<String> mensagens = [];
 
   BannerInformationWidget(
       {super.key,
       required this.capacidadeMaximaKg,
       required this.capacidadePessoas,
+      required this.latitude,
+      required this.longitude,
       required this.mensagens});
 
   @override
@@ -41,8 +45,8 @@ class _BannerInformationWidgetState extends State<BannerInformationWidget> {
 
   void fetchWeatherData() async {
     try {
-      final data =
-          await _weatherService.fetchWeatherByCoordinates(-18.95018, -48.28105);
+      final data = await _weatherService.fetchWeatherByCoordinates(
+          widget.latitude, widget.longitude);
       setState(() {
         weatherData = data;
       });

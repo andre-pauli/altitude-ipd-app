@@ -57,10 +57,10 @@ class _IpdHomePageState extends State<IpdHomePage> {
             Row(
               children: [
                 AndarIndicatorCard(
-                  andarAtual: controller.andares[controller.andarAtual.toString()]
-                      ?['andar'],
-                  description: controller.andares[controller.andarAtual.toString()]
-                      ?['descricao'],
+                  andarAtual: controller
+                      .andares[controller.andarAtual.toString()]?['andar'],
+                  description: controller
+                      .andares[controller.andarAtual.toString()]?['descricao'],
                 ),
                 SizedBox(
                   width: 32.0 * widthRatio,
@@ -68,6 +68,8 @@ class _IpdHomePageState extends State<IpdHomePage> {
                 BannerInformationWidget(
                   capacidadeMaximaKg: controller.capacidadeMaximaKg ?? 0,
                   capacidadePessoas: controller.capacidadePessoas ?? 0,
+                  latitude: controller.latitude ?? 0,
+                  longitude: controller.longitude ?? 0,
                   mensagens: controller.mensagens ?? [],
                 ),
               ],
