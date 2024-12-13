@@ -178,11 +178,19 @@ class _BannerInformationWidgetState extends State<BannerInformationWidget> {
             ),
           ),
           Text(
-            mensagens.isNotEmpty ? mensagens.join('\n') : '',
+            mensagens.isNotEmpty
+                ? (mensagens.length <= 4
+                    ? mensagens.join('\n')
+                    : [
+                        ...mensagens.take(3),
+                        'E mais (${mensagens.length - 3}) avisos'
+                      ].join('\n'))
+                : '',
             style: TextStyle(
-                color: Colors.white,
-                fontSize: 40 * width,
-                fontWeight: FontWeight.w500),
+              color: Colors.white,
+              fontSize: 40 * width,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
