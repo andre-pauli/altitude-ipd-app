@@ -22,7 +22,7 @@ class SignalingService {
     await _checkPermissions();
 
     _localStream = await navigator.mediaDevices.getUserMedia({
-      'video': true,
+      'video': false,
       'audio': true,
     });
 
