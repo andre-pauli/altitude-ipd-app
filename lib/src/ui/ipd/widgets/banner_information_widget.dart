@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:altitude_ipd_app/src/services/weather_service.dart';
 import 'package:altitude_ipd_app/src/ui/_core/image_path_constants.dart';
@@ -40,10 +41,22 @@ class _BannerInformationWidgetState extends State<BannerInformationWidget> {
   }
 
   @override
+  void didUpdateWidget(covariant BannerInformationWidget oldWidget) {
+    // TODO: implement didUpdateWidget
+    super.didUpdateWidget(oldWidget);
+    fetchWeatherData();
+  }
+
+  @override
   void dispose() {
     _timer?.cancel();
     super.dispose();
-    controller.onUpdateWeater = fetchWeatherData;
+    controller.onUpdateWeater = (){
+      fetchWeatherData();
+      log('lat lon recebidos!');
+      setState(() {
+      });
+    };
   }
 
   void fetchWeatherData() async {
