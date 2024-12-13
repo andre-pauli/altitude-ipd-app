@@ -3,7 +3,8 @@ import 'package:flutter_svg/svg.dart';
 
 class CustomButton extends StatelessWidget {
   final String label;
-  final String? icon;
+  final String? iconPath;
+  final Icon? icon;
   final Color backgroundColor;
   final VoidCallback onPressed;
   final double width;
@@ -14,6 +15,7 @@ class CustomButton extends StatelessWidget {
   const CustomButton({
     super.key,
     required this.label,
+    this.iconPath,
     this.icon,
     required this.backgroundColor,
     required this.onPressed,
@@ -30,12 +32,14 @@ class CustomButton extends StatelessWidget {
       height: height,
       child: ElevatedButton.icon(
         onPressed: onPressed,
-        icon: icon != null
+        icon: iconPath != null
             ? SvgPicture.asset(
-                icon!,
+                iconPath!,
                 height: heightIcon,
               )
-            : null,
+            : icon != null
+                ? icon
+                : null,
         label: Text(
           label,
           style: textStyle,

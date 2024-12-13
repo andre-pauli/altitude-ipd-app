@@ -7,7 +7,7 @@ class IpdHomeController {
   static const eventChannel =
       EventChannel("com.example.altitude_ipd_app/receive_channel");
 
-  int? andarAtual;
+  int andarAtual = 1;
   double? temperatura;
   int? capacidadeMaximaKg;
   int? capacidadePessoas;
@@ -15,6 +15,10 @@ class IpdHomeController {
   List<String>? mensagens;
   String? nomeObra;
   String? codigoObra;
+  Map<int, dynamic> andares = {
+    1: {"andar": "0", "descricao": "Térreo"},
+    2: {"andar": "1", "descricao": "1 Andar"},
+  };
 
   Function()? onUpdate;
 
@@ -93,6 +97,10 @@ class IpdHomeController {
             : null;
         nomeObra = dados["nome_obra"];
         codigoObra = dados["codigo_obra"];
+
+        if (dados.containsKey("andares")) {
+          andares = dados["andares"];
+        }
 
         onUpdate?.call();
       }

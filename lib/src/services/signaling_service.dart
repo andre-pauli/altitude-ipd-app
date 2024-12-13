@@ -18,11 +18,11 @@ class SignalingService {
 
   Function(MediaStream)? onRemoteStream;
 
-  Future<void> init() async {
+  Future<void> init({required bool isVideoCall}) async {
     await _checkPermissions();
 
     _localStream = await navigator.mediaDevices.getUserMedia({
-      'video': false,
+      'video': isVideoCall,
       'audio': true,
     });
 

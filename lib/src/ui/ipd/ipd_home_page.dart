@@ -1,4 +1,3 @@
-import 'package:altitude_ipd_app/src/ui/_core/custom_dialog.dart';
 import 'package:altitude_ipd_app/src/ui/_core/image_path_constants.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/ipd_home_controller.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/andar_indicator_card.dart';
@@ -7,7 +6,7 @@ import 'package:altitude_ipd_app/src/ui/ipd/widgets/custom_button.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/image_carousel_widget.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/looping_video_player.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/number_buttons_widget.dart';
-import 'package:altitude_ipd_app/src/ui/sos/call_page.dart';
+import 'package:altitude_ipd_app/src/ui/sos/select_call_type_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -58,7 +57,10 @@ class _IpdHomePageState extends State<IpdHomePage> {
             Row(
               children: [
                 AndarIndicatorCard(
-                  andarAtual: controller.andarAtual ?? 0,
+                  andarAtual: controller.andares[controller.andarAtual]
+                      ?['andar'],
+                  description: controller.andares[controller.andarAtual]
+                      ?['descricao'],
                 ),
                 SizedBox(
                   width: 32.0 * widthRatio,
@@ -78,7 +80,7 @@ class _IpdHomePageState extends State<IpdHomePage> {
               children: [
                 CustomButton(
                   label: 'Selecionar andar',
-                  icon: ImagePathConstants.iconKeyboard,
+                  iconPath: ImagePathConstants.iconKeyboard,
                   backgroundColor: Colors.grey[800]!,
                   onPressed: () {
                     setState(() {
@@ -93,25 +95,12 @@ class _IpdHomePageState extends State<IpdHomePage> {
                 ),
                 CustomButton(
                   label: 'SOS',
-                  icon: ImagePathConstants.iconEmergency,
+                  iconPath: ImagePathConstants.iconEmergency,
                   backgroundColor: Colors.red,
                   onPressed: () async {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) => CustomDialog(
-                        title: 'Ligar para o suporte?',
-                        textContent:
-                            'Deseja realmente ligar para o suporte da Altidude Elevadores?',
-                        onPrimaryPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const CallPage(),
-                            ),
-                          );
-                        },
-                        onSecondaryPressed: () {
-                          Navigator.of(context).pop();
-                        },
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => SelectCallTypePage(),
                       ),
                     );
                   },
@@ -239,7 +228,7 @@ class _IpdHomePageState extends State<IpdHomePage> {
                 height: 476 * heightRatio,
                 width: 1080 * widthRatio,
                 child: NumbersButtonsWidget(
-                  numberOfButtons: 3,
+                  andares: controller.andares,
                   selectAndar: (andarDestino) {
                     andarSelecionado = andarDestino;
                   },
