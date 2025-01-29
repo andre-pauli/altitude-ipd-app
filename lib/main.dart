@@ -26,7 +26,7 @@ class _AltitudeIpdAppState extends State<AltitudeIpdApp>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitDown,
+      DeviceOrientation.portraitUp,
     ]);
   }
 

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -35,6 +36,7 @@ class IpdHomeController {
   Future<void> sendMessageToNative(Map<String, dynamic> mensagem) async {
     try {
       final String jsonMessage = jsonEncode(mensagem);
+      log('mensagem enviada: $jsonMessage');
       await platform.invokeMethod('sendMessage', jsonMessage);
     } on PlatformException catch (e) {
       if (kDebugMode) {

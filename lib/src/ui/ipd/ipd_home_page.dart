@@ -39,9 +39,6 @@ class _IpdHomePageState extends State<IpdHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
     double widthRatio = screenWidth / 1200;
