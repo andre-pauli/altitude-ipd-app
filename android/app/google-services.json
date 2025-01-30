@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "648813911018",
+    "firebase_url": "https://altitude-ipd-app-64069-default-rtdb.firebaseio.com",
+    "project_id": "altitude-ipd-app-64069",
+    "storage_bucket": "altitude-ipd-app-64069.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:648813911018:android:56bfd63434b03b56277093",
+        "android_client_info": {
+          "package_name": "com.example.altitude_ipd_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBvSf8UA0u8KDSLMUCx2a2wSs7SU5kFAkY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

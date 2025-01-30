@@ -1,10 +1,15 @@
-import 'package:altitude_ipd_app/src/ui/_core/image_path_constants.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/custom_button.dart';
 import 'package:altitude_ipd_app/src/ui/sos/call_page.dart';
 import 'package:flutter/material.dart';
 
 class SelectCallTypePage extends StatefulWidget {
-  const SelectCallTypePage({super.key});
+  String roomId;
+  List<String> mensagens = [];
+  SelectCallTypePage({
+    super.key,
+    required this.roomId,
+    required this.mensagens,
+  });
 
   @override
   State<SelectCallTypePage> createState() => _SelectCallTypePageState();
@@ -19,6 +24,7 @@ class _SelectCallTypePageState extends State<SelectCallTypePage> {
     double heightRatio = screenHeight / 1920;
     return Scaffold(
       backgroundColor: Colors.black,
+      appBar: AppBar(backgroundColor: Colors.black, elevation: 0),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -36,6 +42,8 @@ class _SelectCallTypePageState extends State<SelectCallTypePage> {
                   MaterialPageRoute(
                     builder: (context) => CallPage(
                       callPageType: CallPageType.audio,
+                      roomId: widget.roomId,
+                      mensagens: widget.mensagens,
                     ),
                   ),
                 );
@@ -61,30 +69,9 @@ class _SelectCallTypePageState extends State<SelectCallTypePage> {
                   MaterialPageRoute(
                     builder: (context) => CallPage(
                       callPageType: CallPageType.video,
+                      roomId: widget.roomId,
+                      mensagens: widget.mensagens,
                     ),
-                  ),
-                );
-              },
-              width: 500 * widthRatio,
-              height: 108 * heightRatio,
-              heightIcon: 37.47 * heightRatio,
-              textStyle:
-                  TextStyle(color: Colors.white, fontSize: 40 * widthRatio),
-            ),
-            const SizedBox(
-              height: 30,
-            ),
-            CustomButton(
-              label: 'Mensagens',
-              icon: Icon(
-                Icons.message,
-                color: Colors.white,
-              ),
-              backgroundColor: Colors.grey[800]!,
-              onPressed: () async {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => SelectCallTypePage(),
                   ),
                 );
               },

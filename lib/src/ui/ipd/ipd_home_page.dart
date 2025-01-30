@@ -99,7 +99,10 @@ class _IpdHomePageState extends State<IpdHomePage> {
                   onPressed: () async {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => SelectCallTypePage(),
+                        builder: (context) => SelectCallTypePage(
+                          roomId: controller.nomeObra ?? 'Desconhecido',
+                          mensagens: controller.mensagens ?? [],
+                        ),
                       ),
                     );
                   },

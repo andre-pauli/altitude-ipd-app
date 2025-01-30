@@ -28,7 +28,7 @@ class ImageCarousel extends StatelessWidget {
         autoPlay: true,
         height: 302 * heightRatio,
         viewportFraction: 1.0,
-        autoPlayInterval: Duration(seconds: 8),
+        autoPlayInterval: Duration(seconds: 12),
       ),
       items: imagePaths.map((imagePath) {
         return Builder(
