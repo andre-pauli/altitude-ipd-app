@@ -100,7 +100,8 @@ class _IpdHomePageState extends State<IpdHomePage> {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => SelectCallTypePage(
-                          roomId: controller.nomeObra ?? 'Desconhecido',
+                          roomId:
+                              controller.nomeObra ?? 'Salvador - CS Fraco - MG',
                           mensagens: controller.mensagens ?? [],
                         ),
                       ),

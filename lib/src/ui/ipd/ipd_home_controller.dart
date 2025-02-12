@@ -100,9 +100,11 @@ class IpdHomeController {
           capacidadePessoas = dados["capacidade_pessoas"];
         }
         direcaoMovimentacao = dados["direcao_movimentacao"];
-        mensagens = dados.containsKey("mensagens")
-            ? List<String>.from(dados["mensagens"])
-            : null;
+
+        if (dados.containsKey("mensagens")) {
+          mensagens = List<String>.from(dados["mensagens"]);
+        }
+
         nomeObra = dados["nome_obra"];
         codigoObra = dados["codigo_obra"];
 

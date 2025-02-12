@@ -60,7 +60,6 @@ flutter:
     - assets/images/png/slide_images/
     - assets/images/svg/
     - assets/videos/video_altitude.mp4
-    - assets/documents/altitude-support-capp-app-messaging.json
 
   fonts:
     - family: Roboto

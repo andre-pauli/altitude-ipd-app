@@ -76,7 +76,7 @@ class MainActivity : FlutterActivity() {
         }
 
         // Inicia a porta com o leitor, fixado em UTF-8
-        val baudrate = 9600
+        val baudrate = 19200
         spManager.startSerialPort(SerialEnums.Ports.ttyS0, isAscii, baudrate, 0, baseReader)
     }
 
