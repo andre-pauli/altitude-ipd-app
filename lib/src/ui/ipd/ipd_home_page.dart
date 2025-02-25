@@ -8,7 +8,6 @@ import 'package:altitude_ipd_app/src/ui/ipd/widgets/looping_video_player.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/number_buttons_widget.dart';
 import 'package:altitude_ipd_app/src/ui/sos/select_call_type_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:kiosk_mode/kiosk_mode.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -101,7 +100,7 @@ class _IpdHomePageState extends State<IpdHomePage> {
                       MaterialPageRoute(
                         builder: (context) => SelectCallTypePage(
                           roomId:
-                              controller.nomeObra ?? 'Salvador - CS Fraco - MG',
+                              controller.nomeObra ?? '-',
                           mensagens: controller.mensagens ?? [],
                         ),
                       ),

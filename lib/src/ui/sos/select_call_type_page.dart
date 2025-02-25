@@ -24,7 +24,7 @@ class _SelectCallTypePageState extends State<SelectCallTypePage> {
     double heightRatio = screenHeight / 1920;
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(backgroundColor: Colors.black, elevation: 0),
+      appBar: AppBar(backgroundColor: Colors.black, elevation: 0, leading: IconButton(onPressed: (){Navigator.of(context).pop();}, icon: Icon(Icons.arrow_back, color: Colors.white,)),),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

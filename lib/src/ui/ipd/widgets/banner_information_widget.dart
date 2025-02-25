@@ -36,8 +36,8 @@ class _BannerInformationWidgetState extends State<BannerInformationWidget> {
   @override
   void initState() {
     super.initState();
-    fetchWeatherData();
-    _startAutoUpdate();
+    //fetchWeatherData();
+    //_startAutoUpdate();
   }
 
   @override
@@ -52,7 +52,7 @@ class _BannerInformationWidgetState extends State<BannerInformationWidget> {
     _timer?.cancel();
     super.dispose();
     controller.onUpdateWeater = (){
-      fetchWeatherData();
+      //fetchWeatherData();
       log('lat lon recebidos!');
       setState(() {
       });
@@ -73,7 +73,7 @@ class _BannerInformationWidgetState extends State<BannerInformationWidget> {
 
   void _startAutoUpdate() {
     _timer = Timer.periodic(const Duration(minutes: 15), (timer) {
-      fetchWeatherData();
+      //fetchWeatherData();
     });
   }
 

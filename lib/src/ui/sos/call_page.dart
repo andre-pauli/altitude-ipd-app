@@ -50,12 +50,10 @@ class _CallPageState extends State<CallPage> {
   @override
   void initState() {
     super.initState();
+     _initialize();
     controller.onUpdate = () {
       setState(() {});
     };
-    controller.enviarComandoBooleano(
-        acao: "enviar_notificacao_telegram_sos", estado: true);
-    _initialize();
   }
 
   @override
@@ -417,12 +415,6 @@ class _CallPageState extends State<CallPage> {
             builder: (context) => IpdHomePage(),
           ),
           (route) => false);
-
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => IpdHomePage()),
-        (route) => false,
-      );
     } catch (e) {
       print("Erro ao finalizar a chamada: $e");
     }

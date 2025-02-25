@@ -89,7 +89,7 @@ class IpdHomeController {
       final Map<String, dynamic>? dados = decodedMessage["dados"];
 
       if (tipo == "status" && dados != null) {
-        if (dados.containsKey("andar_atual")) andarAtual = dados["andar_atual"];
+        if (dados.containsKey("andar_atual")) andarAtual = dados["andar_atual"]??0;
         if (dados.containsKey("temperatura")) {
           temperatura = (dados["temperatura"] as num).toDouble();
         }
@@ -105,8 +105,12 @@ class IpdHomeController {
           mensagens = List<String>.from(dados["mensagens"]);
         }
 
-        nomeObra = dados["nome_obra"];
-        codigoObra = dados["codigo_obra"];
+        if (dados.containsKey("nome_obra")) {
+          nomeObra = dados["nome_obra"];
+        }
+        if (dados.containsKey("codigo_obra")){
+          codigoObra = dados["codigo_obra"];
+        }
 
         if (dados.containsKey("andares")) {
           andares = dados["andares"];
