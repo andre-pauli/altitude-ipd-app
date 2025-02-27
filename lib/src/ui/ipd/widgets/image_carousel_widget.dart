@@ -1,6 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 class ImageCarousel extends StatelessWidget {
   double widthRatio;
   double heightRatio;
@@ -28,14 +29,13 @@ class ImageCarousel extends StatelessWidget {
         autoPlay: true,
         height: 302 * heightRatio,
         viewportFraction: 1.0,
-        autoPlayInterval: Duration(seconds: 12),
+        autoPlayInterval: Duration(seconds: 20),
       ),
       items: imagePaths.map((imagePath) {
         return Builder(
           builder: (BuildContext context) {
             return Container(
               width: 1080 * widthRatio,
-              color: Colors.white,
               child: Image.asset(
                 imagePath,
                 fit: BoxFit.fill,
