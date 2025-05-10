@@ -6,10 +6,9 @@ import 'package:altitude_ipd_app/src/ui/ipd/widgets/custom_button.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/image_carousel_widget.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/looping_video_player.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/number_buttons_widget.dart';
-import 'package:altitude_ipd_app/src/ui/sos/select_call_type_page.dart';
+import 'package:altitude_ipd_app/src/ui/call_page/select_call_type_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:kiosk_mode/kiosk_mode.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class IpdHomePage extends StatefulWidget {
@@ -21,6 +20,7 @@ class IpdHomePage extends StatefulWidget {
 
 class _IpdHomePageState extends State<IpdHomePage> {
   final IpdHomeController controller = IpdHomeController();
+
   bool showKeyboard = false;
   int andarSelecionado = 0;
   String version = '';
@@ -99,8 +99,7 @@ class _IpdHomePageState extends State<IpdHomePage> {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => SelectCallTypePage(
-                          roomId:
-                              controller.nomeObra ?? '-',
+                          roomId: controller.nomeObra ?? '-',
                           mensagens: controller.mensagens ?? [],
                         ),
                       ),
@@ -146,9 +145,7 @@ class _IpdHomePageState extends State<IpdHomePage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 GestureDetector(
-                  onLongPress: () async {
-                    await stopKioskMode();
-                  },
+                  onLongPress: () async {},
                   child: SizedBox(
                     width: 268.3 * widthRatio,
                     height: 107.89 * heightRatio,

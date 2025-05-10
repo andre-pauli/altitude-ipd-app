@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:kiosk_mode/kiosk_mode.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -11,8 +10,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await loginAnonymously();
-  await startKioskMode();
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   runApp(const AltitudeIpdApp());
 }
 
@@ -31,7 +28,6 @@ class AltitudeIpdApp extends StatefulWidget {
   const AltitudeIpdApp({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _AltitudeIpdAppState createState() => _AltitudeIpdAppState();
 }
 

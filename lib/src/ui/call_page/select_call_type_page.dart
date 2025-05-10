@@ -1,21 +1,17 @@
+import 'package:altitude_ipd_app/src/ui/_core/enumerators.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/custom_button.dart';
-import 'package:altitude_ipd_app/src/ui/sos/call_page.dart';
+import 'package:altitude_ipd_app/src/ui/call_page/call_page.dart';
 import 'package:flutter/material.dart';
 
-class SelectCallTypePage extends StatefulWidget {
-  String roomId;
-  List<String> mensagens = [];
+class SelectCallTypePage extends StatelessWidget {
+  final String roomId;
+  final List<String> mensagens;
   SelectCallTypePage({
     super.key,
     required this.roomId,
     required this.mensagens,
   });
 
-  @override
-  State<SelectCallTypePage> createState() => _SelectCallTypePageState();
-}
-
-class _SelectCallTypePageState extends State<SelectCallTypePage> {
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
@@ -24,7 +20,18 @@ class _SelectCallTypePageState extends State<SelectCallTypePage> {
     double heightRatio = screenHeight / 1920;
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(backgroundColor: Colors.black, elevation: 0, leading: IconButton(onPressed: (){Navigator.of(context).pop();}, icon: Icon(Icons.arrow_back, color: Colors.white,)),),
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        elevation: 0,
+        leading: IconButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            icon: Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+            )),
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -42,8 +49,8 @@ class _SelectCallTypePageState extends State<SelectCallTypePage> {
                   MaterialPageRoute(
                     builder: (context) => CallPage(
                       callPageType: CallPageType.audio,
-                      roomId: widget.roomId,
-                      mensagens: widget.mensagens,
+                      roomId: roomId,
+                      mensagens: mensagens,
                     ),
                   ),
                 );
@@ -69,8 +76,8 @@ class _SelectCallTypePageState extends State<SelectCallTypePage> {
                   MaterialPageRoute(
                     builder: (context) => CallPage(
                       callPageType: CallPageType.video,
-                      roomId: widget.roomId,
-                      mensagens: widget.mensagens,
+                      roomId: roomId,
+                      mensagens: mensagens,
                     ),
                   ),
                 );

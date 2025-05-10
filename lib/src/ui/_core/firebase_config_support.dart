@@ -21,3 +21,21 @@ Future<void> initializeSupportApp() async {
 Future<FirebaseDatabase> getSupportDatabaseRef() async {
   return FirebaseDatabase.instanceFor(app: supportApp);
 }
+
+Future<bool> checkDatabaseInstance() async {
+  try {
+    FirebaseDatabase database = FirebaseDatabase.instanceFor(app: supportApp);
+    DatabaseReference ref = database.ref("test");
+    DataSnapshot snapshot = await ref.get();
+
+    if (snapshot.exists) {
+      print("Firebase Database disponível! Dados: ${snapshot.value}");
+      return true;
+    } else {
+      return false;
+    }
+  } catch (e) {
+    print("Erro ao acessar o Firebase Database: $e");
+    return false;
+  }
+}

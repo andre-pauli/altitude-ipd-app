@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 
-import 'package:altitude_ipd_app/firebase_config_support.dart';
+import 'package:altitude_ipd_app/src/ui/_core/enumerators.dart';
+import 'package:altitude_ipd_app/src/ui/_core/firebase_config_support.dart';
 import 'package:altitude_ipd_app/main.dart';
 import 'package:altitude_ipd_app/src/services/telegram_service.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/ipd_home_controller.dart';
@@ -12,18 +14,17 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
 
-enum CallPageType { audio, video }
-
 class CallPage extends StatefulWidget {
   final CallPageType callPageType;
   final String roomId;
-  List<String> mensagens = [];
-  CallPage(
-      {Key? key,
-      required this.callPageType,
-      required this.roomId,
-      required this.mensagens})
-      : super(key: key);
+  final List<String> mensagens;
+
+  const CallPage({
+    Key? key,
+    required this.callPageType,
+    required this.roomId,
+    required this.mensagens,
+  }) : super(key: key);
 
   @override
   _CallPageState createState() => _CallPageState();
@@ -32,10 +33,8 @@ class CallPage extends StatefulWidget {
 class _CallPageState extends State<CallPage> {
   final IpdHomeController controller = IpdHomeController();
   late FirebaseDatabase _supportDatabase;
-  final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
-  final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
-  Timer? _callingTimer;
-  Timer? _callTimer;
+  RTCVideoRenderer? _localRenderer;
+  RTCVideoRenderer? _remoteRenderer;
   final ValueNotifier<Duration> _callDuration = ValueNotifier(Duration.zero);
 
   late String roomId;
@@ -46,66 +45,111 @@ class _CallPageState extends State<CallPage> {
   bool inCall = false;
   bool isDeclined = false;
   bool isCalling = false;
+  bool isCallEnded = false;
+  bool isStoppingCall = false;
+
+  // Add stream subscriptions to properly dispose them
+  StreamSubscription? _callStatusSubscription;
+  StreamSubscription? _answerSubscription;
+  StreamSubscription? _iceCandidatesSubscription;
+  Timer? _callingTimer;
 
   @override
   void initState() {
     super.initState();
-     _initialize();
+    _initialize();
     controller.onUpdate = () {
-      setState(() {});
+      if (mounted) setState(() {});
     };
   }
 
   @override
   void dispose() {
-    _stopWbrtcProccess();
+    _cleanupResources();
     super.dispose();
   }
 
+  Future<void> _cleanupResources() async {
+    _callingTimer?.cancel();
+    _callStatusSubscription?.cancel();
+    _answerSubscription?.cancel();
+    _iceCandidatesSubscription?.cancel();
+
+    await _stopWbrtcProccess();
+  }
+
   void _initialize() async {
-    roomId = widget.roomId;
-    await _initializeFirebaseParams();
-    await _initializeRenderers();
-    await _startCallProcess();
-    await _sendMessageTelegram();
-    _startCallTimer();
+    try {
+      roomId = widget.roomId;
+      await _initializeFirebaseParams();
+
+      if (await checkDatabaseInstance()) {
+        await _initializeRenderers();
+        await _startCallProcess();
+        _startCallTimer();
+      } else {
+        await _stopCallProcess(context: context, endCallRemotely: false);
+      }
+    } catch (e) {
+      log('Error initializing call: $e');
+      if (mounted) {
+        await _stopCallProcess(context: context, endCallRemotely: false);
+      }
+    }
+  }
+
+  Future<void> _initializeRenderers() async {
+    if (!mounted) return;
+
+    setState(() {
+      isCalling = true;
+      _localRenderer = RTCVideoRenderer();
+      _remoteRenderer = RTCVideoRenderer();
+    });
+
+    await _localRenderer?.initialize();
+    await _remoteRenderer?.initialize();
+  }
+
+  void _startCallTimer() {
+    _callingTimer?.cancel();
+    _callingTimer = Timer(const Duration(seconds: call_time), () {
+      if (mounted) {
+        setState(() {
+          isDeclined = true;
+        });
+      }
+    });
+  }
+
+  Future<void> _startCallProcess() async {
+    try {
+      await _supportDatabase.ref("calls/$roomId").set({
+        "status": "pending",
+        "offer": null,
+        "answer": null,
+        'room_id': roomId,
+        'type': 'new_call',
+        'client_name': roomId,
+        'call_type': widget.callPageType.name,
+        "ice_candidates": {"caller": {}, "callee": {}}
+      });
+
+      await _sendPushNotificationToSupport();
+      _listenForCallStatus();
+      await _startWebRTC();
+    } catch (e) {
+      log('Error starting call process: $e');
+      if (mounted) {
+        await _stopCallProcess(context: context, endCallRemotely: false);
+      }
+    }
   }
 
   Future<void> _sendMessageTelegram() async {
     TelegramService _telegramService = TelegramService();
     await _telegramService.sendMessage(
         "O cliente $roomId fez um chamado pro S.O.S \n Ele está com os seguintes erros: \n ${widget.mensagens.join('\n')}");
-  }
-
-  Future<void> _initializeRenderers() async {
-    setState(() {
-      isCalling = true;
-    });
-    await _localRenderer.initialize();
-    await _remoteRenderer.initialize();
-  }
-
-  void _startCallTimer() {
-    const duration = Duration(seconds: call_time); // Tempo limite da chamada
-    _callingTimer = Timer(duration, () {
-      print('Tempo de chamada expirado. Finalizando a chamada...');
-      setState(() {
-        isDeclined = true;
-      }); // Finaliza a chamada
-    });
-  }
-
-  Future<void> _startCallProcess() async {
-    // Criar a chamada no Firebase com status "pending"
-    await _supportDatabase.ref("calls/$roomId").set({
-      "status": "pending",
-      "offer": null,
-      "answer": null,
-      "ice_candidates": {"caller": {}, "callee": {}}
-    });
-
-    await _sendPushNotificationToSupport();
-    _listenForCallStatus();
   }
 
   Future<void> _sendPushNotificationToSupport() async {
@@ -156,14 +200,14 @@ class _CallPageState extends State<CallPage> {
       "message": {
         "token": token,
         "notification": {
-          "title": "🚀 Nova Chamada de Suporte",
-          "body": "📞 Um usuário está tentando realizar uma chamada.",
+          "title": "S.O.S Altitude",
+          "body": "O usuário $roomId está tentando realizar uma chamada.",
         },
         "data": {
           "type": "new_call",
           "room_id": roomId,
-          "call_type":
-              widget.callPageType == CallPageType.audio ? "audio" : "video",
+          "client_name": roomId,
+          "call_type": widget.callPageType.name,
         }
       }
     };
@@ -188,21 +232,29 @@ class _CallPageState extends State<CallPage> {
   }
 
   void _listenForCallStatus() {
-    _supportDatabase.ref("calls/$roomId/status").onValue.listen((event) async {
-      if (event.snapshot.value == "active") {
-        await _startWebRTC();
-      } else if (event.snapshot.value == "declined") {
+    _callStatusSubscription?.cancel();
+    _callStatusSubscription = _supportDatabase
+        .ref("calls/$roomId/status")
+        .onValue
+        .listen((event) async {
+      if (!mounted) return;
+
+      final status = event.snapshot.value as String?;
+      if (status == "active") {
+        setState(() {
+          inCall = true;
+        });
+      } else if (status == "declined") {
         setState(() {
           isDeclined = true;
         });
-      } else if (event.snapshot.value == "ended") {
-        _stopCallProcess(context: context, endCallRemotely: false);
+      } else if (status == "ended") {
+        await _stopCallProcess(context: context, endCallRemotely: false);
       }
     });
   }
 
   Future<void> _startWebRTC() async {
-    // Configuração inicial do PeerConnection
     _peerConnection = await createPeerConnection({
       'iceServers': [
         {'urls': 'stun:stun.l.google.com:19302'}
@@ -224,7 +276,7 @@ class _CallPageState extends State<CallPage> {
       'audio': true,
       'video': widget.callPageType == CallPageType.video,
     });
-    _localRenderer.srcObject = _localStream;
+    _localRenderer!.srcObject = _localStream;
 
     _localStream?.getTracks().forEach((track) {
       _peerConnection?.addTrack(track, _localStream!);
@@ -233,7 +285,8 @@ class _CallPageState extends State<CallPage> {
     _peerConnection?.onTrack = (RTCTrackEvent event) {
       if (event.streams.isNotEmpty) {
         setState(() {
-          _remoteRenderer.srcObject = event.streams.first;
+          _remoteRenderer!.srcObject = event.streams.first;
+          inCall = true;
         });
       }
     };
@@ -250,7 +303,13 @@ class _CallPageState extends State<CallPage> {
   }
 
   Future<void> _listenForAnswer() async {
-    _supportDatabase.ref("calls/$roomId/answer").onValue.listen((event) async {
+    _answerSubscription?.cancel();
+    _answerSubscription = _supportDatabase
+        .ref("calls/$roomId/answer")
+        .onValue
+        .listen((event) async {
+      if (!mounted) return;
+
       if (event.snapshot.value != null) {
         var answerData = event.snapshot.value as Map;
         var answer =
@@ -265,10 +324,13 @@ class _CallPageState extends State<CallPage> {
   }
 
   Future<void> _listenForIceCandidates(String receiver) async {
-    _supportDatabase
+    _iceCandidatesSubscription?.cancel();
+    _iceCandidatesSubscription = _supportDatabase
         .ref("calls/$roomId/ice_candidates/$receiver")
         .onChildAdded
         .listen((event) async {
+      if (!mounted) return;
+
       if (event.snapshot.value != null) {
         var candidateData = event.snapshot.value as Map;
         var candidate = RTCIceCandidate(
@@ -289,6 +351,38 @@ class _CallPageState extends State<CallPage> {
     double heightRatio = screenHeight / 1920;
     if (isDeclined) {
       return _buildDeclinedScreen();
+    }
+
+    if (isCallEnded) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              const CircularProgressIndicator(),
+              const Text('Encerrando a chamada...'),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_remoteRenderer == null) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              const CircularProgressIndicator(),
+              const Text('Iniciando chamada...'),
+            ],
+          ),
+        ),
+      );
     }
 
     return Scaffold(
@@ -319,7 +413,7 @@ class _CallPageState extends State<CallPage> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                _stopWbrtcProccess();
+                _cleanupResources();
                 Navigator.of(context).pop();
               },
               child: const Text('Tentar novamente'),
@@ -341,7 +435,7 @@ class _CallPageState extends State<CallPage> {
     return Stack(
       children: [
         Container(
-          child: _remoteRenderer.srcObject == null
+          child: _remoteRenderer!.srcObject == null
               ? Center(
                   child: Column(
                   mainAxisSize: MainAxisSize.max,
@@ -352,32 +446,31 @@ class _CallPageState extends State<CallPage> {
                   ],
                 ))
               : RTCVideoView(
-                  _remoteRenderer,
+                  _remoteRenderer!,
                   objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
                 ),
         ),
         Positioned(
-          bottom: 40.0 * heightRatio, // Margem do topo
-          right: 40.0 * widthRatio, // Margem do canto esquerdo
-          width: 400 * widthRatio, // Largura do vídeo local
-          height: 450 * heightRatio, // Altura do vídeo local
+          bottom: 40.0 * heightRatio,
+          right: 40.0 * widthRatio,
+          width: 400 * widthRatio,
+          height: 450 * heightRatio,
           child: Container(
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.white, width: 2), // Borda branca
-              borderRadius: BorderRadius.circular(8), // Cantos arredondados
+              border: Border.all(color: Colors.white, width: 2),
+              borderRadius: BorderRadius.circular(8),
             ),
-            child: _localRenderer.srcObject == null
+            child: _localRenderer!.srcObject == null
                 ? Center(
                     child: CircularProgressIndicator(),
                   )
                 : RTCVideoView(
-                    _localRenderer,
+                    _localRenderer!,
                     mirror: true,
                     objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
                   ),
           ),
         ),
-        // Botão de finalizar chamada centralizado
         Padding(
           padding: EdgeInsets.only(bottom: 40.0 * heightRatio),
           child: Align(
@@ -395,31 +488,6 @@ class _CallPageState extends State<CallPage> {
     );
   }
 
-  void _stopCallProcess({
-    bool endCallRemotely = false,
-    required BuildContext context,
-  }) async {
-    try {
-      // Atualizar o status no Firebase para "ended", se necessário
-      if (endCallRemotely) {
-        await _supportDatabase.ref('calls/$roomId/status').set("ended");
-      }
-
-      _stopWbrtcProccess();
-
-      // Remover os dados da chamada no Firebase
-      await _supportDatabase.ref("calls/$roomId").remove();
-
-      navigatorKey.currentState?.pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (context) => IpdHomePage(),
-          ),
-          (route) => false);
-    } catch (e) {
-      print("Erro ao finalizar a chamada: $e");
-    }
-  }
-
   Widget buildAudioCallWidget(
       {required double widthRatio, required double heightRatio}) {
     return Stack(
@@ -430,7 +498,7 @@ class _CallPageState extends State<CallPage> {
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _remoteRenderer.srcObject == null
+                _remoteRenderer!.srcObject == null
                     ? Text('Chamando...')
                     : buildTimerWidget(),
                 Image.asset('assets/images/png/logo_altitude.png'),
@@ -438,7 +506,6 @@ class _CallPageState extends State<CallPage> {
             ),
           ),
         ),
-        // Botão de finalizar chamada centralizado
         Padding(
           padding: EdgeInsets.only(bottom: 40.0 * heightRatio),
           child: Align(
@@ -477,25 +544,85 @@ class _CallPageState extends State<CallPage> {
     _supportDatabase = await getSupportDatabaseRef();
   }
 
-  void _stopWbrtcProccess() async {
-    if (_localRenderer.srcObject != null) {
-      _localRenderer.srcObject?.getTracks().forEach((track) => track.stop());
-      _localRenderer.srcObject = null;
-      _localRenderer.dispose();
+  Future<void> _stopWbrtcProccess() async {
+    try {
+      if (_localRenderer?.srcObject != null) {
+        _localRenderer!.srcObject?.getTracks().forEach((track) => track.stop());
+        _localRenderer!.srcObject = null;
+      }
+
+      if (_localRenderer != null) {
+        await _localRenderer!.dispose();
+        _localRenderer = null;
+      }
+
+      if (_remoteRenderer?.srcObject != null) {
+        _remoteRenderer!.srcObject
+            ?.getTracks()
+            .forEach((track) => track.stop());
+        _remoteRenderer!.srcObject = null;
+      }
+
+      if (_remoteRenderer != null) {
+        await _remoteRenderer!.dispose();
+        _remoteRenderer = null;
+      }
+
+      if (_peerConnection != null) {
+        await _peerConnection?.close();
+        _peerConnection = null;
+      }
+
+      if (_localStream != null) {
+        _localStream?.getTracks().forEach((track) => track.stop());
+        await _localStream?.dispose();
+        _localStream = null;
+      }
+    } catch (e) {
+      log('Error stopping WebRTC: $e');
     }
+  }
 
-    if (_remoteRenderer.srcObject != null) {
-      _remoteRenderer.srcObject?.getTracks().forEach((track) => track.stop());
-      _remoteRenderer.srcObject = null;
-      _remoteRenderer.dispose();
-    }
+  Future<void> _stopCallProcess({
+    bool endCallRemotely = false,
+    required BuildContext context,
+  }) async {
+    if (isStoppingCall) return;
 
-    await _peerConnection?.close();
-    _peerConnection = null;
+    try {
+      if (!mounted) return;
 
-    if (_localStream != null) {
-      _localStream?.getTracks().forEach((track) => track.stop());
-      _localStream = null;
+      setState(() {
+        isStoppingCall = true;
+        isCallEnded = true;
+      });
+
+      if (endCallRemotely && await checkDatabaseInstance()) {
+        await _supportDatabase.ref('calls/$roomId/status').set("ended");
+      }
+
+      await _stopWbrtcProccess();
+
+      if (await checkDatabaseInstance()) {
+        await _supportDatabase.ref("calls/$roomId").remove();
+      }
+
+      if (mounted) {
+        navigatorKey.currentState?.pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => const IpdHomePage(),
+          ),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      log('Error stopping call process: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          isStoppingCall = false;
+        });
+      }
     }
   }
 }
