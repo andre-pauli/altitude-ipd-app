@@ -47,6 +47,8 @@ class _CallPageState extends State<CallPage> {
   bool isCalling = false;
   bool isCallEnded = false;
   bool isStoppingCall = false;
+  bool isError = false;
+  String errorMessage = '';
 
   // Add stream subscriptions to properly dispose them
   StreamSubscription? _callStatusSubscription;
@@ -66,6 +68,10 @@ class _CallPageState extends State<CallPage> {
   @override
   void dispose() {
     _cleanupResources();
+    _callingTimer?.cancel();
+    _callStatusSubscription?.cancel();
+    _answerSubscription?.cancel();
+    _iceCandidatesSubscription?.cancel();
     super.dispose();
   }
 
@@ -241,6 +247,7 @@ class _CallPageState extends State<CallPage> {
 
       final status = event.snapshot.value as String?;
       if (status == "active") {
+        _callingTimer?.cancel();
         setState(() {
           inCall = true;
         });
@@ -257,11 +264,38 @@ class _CallPageState extends State<CallPage> {
   Future<void> _startWebRTC() async {
     _peerConnection = await createPeerConnection({
       'iceServers': [
-        {'urls': 'stun:stun.l.google.com:19302'}
-      ]
+        {'urls': 'stun:stun.l.google.com:19302'},
+        {'urls': 'stun:stun1.l.google.com:19302'},
+        {'urls': 'stun:stun2.l.google.com:19302'},
+        {'urls': 'stun:stun3.l.google.com:19302'},
+        {'urls': 'stun:stun4.l.google.com:19302'}
+      ],
+      'sdpSemantics': 'unified-plan',
+      'iceCandidatePoolSize': 10
     });
 
+    _peerConnection?.onConnectionState = (RTCPeerConnectionState state) {
+      log('Connection state changed: $state');
+      if (state == RTCPeerConnectionState.RTCPeerConnectionStateFailed ||
+          state == RTCPeerConnectionState.RTCPeerConnectionStateDisconnected) {
+        _handleConnectionError();
+      }
+    };
+
+    _peerConnection?.onIceConnectionState = (RTCIceConnectionState state) {
+      log('ICE connection state changed: $state');
+      if (state == RTCIceConnectionState.RTCIceConnectionStateFailed ||
+          state == RTCIceConnectionState.RTCIceConnectionStateDisconnected) {
+        _handleConnectionError();
+      }
+    };
+
+    _peerConnection?.onIceGatheringState = (RTCIceGatheringState state) {
+      log('ICE gathering state changed: $state');
+    };
+
     _peerConnection?.onIceCandidate = (RTCIceCandidate candidate) async {
+      log('New ICE candidate: ${candidate.candidate}');
       await _supportDatabase
           .ref("calls/$roomId/ice_candidates/caller")
           .push()
@@ -273,12 +307,27 @@ class _CallPageState extends State<CallPage> {
     };
 
     _localStream = await navigator.mediaDevices.getUserMedia({
-      'audio': true,
-      'video': widget.callPageType == CallPageType.video,
+      'audio': {
+        'echoCancellation': true,
+        'noiseSuppression': true,
+        'autoGainControl': true,
+        'channelCount': 1,
+        'sampleRate': 48000,
+      },
+      'video': widget.callPageType == CallPageType.video
+          ? {
+              'width': {'ideal': 640},
+              'height': {'ideal': 480},
+              'facingMode': 'user',
+              'frameRate': {'ideal': 30},
+            }
+          : false,
     });
+
     _localRenderer!.srcObject = _localStream;
 
     _localStream?.getTracks().forEach((track) {
+      track.enabled = true;
       _peerConnection?.addTrack(track, _localStream!);
     });
 
@@ -349,6 +398,43 @@ class _CallPageState extends State<CallPage> {
     double screenHeight = MediaQuery.of(context).size.height;
     double widthRatio = screenWidth / 1200;
     double heightRatio = screenHeight / 1920;
+
+    if (isError) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.red, size: 48),
+              const SizedBox(height: 16),
+              Text(
+                errorMessage,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 18),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _attemptReconnection,
+                child: const Text('Tentar Reconectar'),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => _stopCallProcess(
+                  context: context,
+                  endCallRemotely: true,
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                ),
+                child: const Text('Encerrar Chamada'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     if (isDeclined) {
       return _buildDeclinedScreen();
     }
@@ -362,6 +448,7 @@ class _CallPageState extends State<CallPage> {
             mainAxisSize: MainAxisSize.max,
             children: [
               const CircularProgressIndicator(),
+              const SizedBox(height: 16),
               const Text('Encerrando a chamada...'),
             ],
           ),
@@ -378,7 +465,15 @@ class _CallPageState extends State<CallPage> {
             mainAxisSize: MainAxisSize.max,
             children: [
               const CircularProgressIndicator(),
+              const SizedBox(height: 16),
               const Text('Iniciando chamada...'),
+              if (isCalling) ...[
+                const SizedBox(height: 8),
+                const Text(
+                  'Aguardando resposta...',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ],
             ],
           ),
         ),
@@ -547,7 +642,10 @@ class _CallPageState extends State<CallPage> {
   Future<void> _stopWbrtcProccess() async {
     try {
       if (_localRenderer?.srcObject != null) {
-        _localRenderer!.srcObject?.getTracks().forEach((track) => track.stop());
+        _localRenderer!.srcObject?.getTracks().forEach((track) {
+          track.stop();
+          track.enabled = false;
+        });
         _localRenderer!.srcObject = null;
       }
 
@@ -557,9 +655,10 @@ class _CallPageState extends State<CallPage> {
       }
 
       if (_remoteRenderer?.srcObject != null) {
-        _remoteRenderer!.srcObject
-            ?.getTracks()
-            .forEach((track) => track.stop());
+        _remoteRenderer!.srcObject?.getTracks().forEach((track) {
+          track.stop();
+          track.enabled = false;
+        });
         _remoteRenderer!.srcObject = null;
       }
 
@@ -569,12 +668,20 @@ class _CallPageState extends State<CallPage> {
       }
 
       if (_peerConnection != null) {
+        _peerConnection?.onIceCandidate = null;
+        _peerConnection?.onIceConnectionState = null;
+        _peerConnection?.onConnectionState = null;
+        _peerConnection?.onIceGatheringState = null;
+        _peerConnection?.onTrack = null;
         await _peerConnection?.close();
         _peerConnection = null;
       }
 
       if (_localStream != null) {
-        _localStream?.getTracks().forEach((track) => track.stop());
+        _localStream?.getTracks().forEach((track) {
+          track.stop();
+          track.enabled = false;
+        });
         await _localStream?.dispose();
         _localStream = null;
       }
@@ -621,6 +728,33 @@ class _CallPageState extends State<CallPage> {
       if (mounted) {
         setState(() {
           isStoppingCall = false;
+        });
+      }
+    }
+  }
+
+  void _handleConnectionError() {
+    if (!mounted) return;
+
+    setState(() {
+      isError = true;
+      errorMessage = 'Erro na conexão. Tentando reconectar...';
+    });
+
+    _attemptReconnection();
+  }
+
+  Future<void> _attemptReconnection() async {
+    try {
+      await _stopWbrtcProccess();
+      await Future.delayed(const Duration(seconds: 2));
+      await _startWebRTC();
+    } catch (e) {
+      log('Reconnection failed: $e');
+      if (mounted) {
+        setState(() {
+          isError = true;
+          errorMessage = 'Falha na reconexão. Por favor, tente novamente.';
         });
       }
     }
