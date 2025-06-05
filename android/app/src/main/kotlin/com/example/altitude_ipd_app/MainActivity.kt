@@ -19,6 +19,13 @@ class MainActivity : FlutterActivity() {
     private lateinit var baseReader: BaseReader
     private var eventSink: EventChannel.EventSink? = null
     private val isAscii = true
+    
+    // Buffer handling variables
+    private var jsonBuffer = StringBuilder()
+    private var lastProcessedTime = 0L
+    private val BUFFER_TIMEOUT = 500L // 500ms de timeout
+    private var lastChunkTime = 0L
+    private val CHUNK_TIMEOUT = 100L // 100ms entre chunks
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,17 +66,51 @@ class MainActivity : FlutterActivity() {
                 runOnUiThread {
                     try {
                         Log.d("SERIAL_RECEIVED", "Recebido em hexadecimal: $read")
-//                        val utf8Message = hexToUtf8String(read)
-//                        Log.d("SERIAL_RECEIVED", "Mensagem recebida (UTF-8): $utf8Message")
-
-                        // Verifica se a mensagem é um JSON válido antes de enviar ao Flutter
-                        if (isValidJson(read)) {
-                            eventSink?.success(read)
-                        } else {
-                            Log.e("SERIAL_RECEIVED", "Mensagem recebida não é um JSON válido: $read")
+                        
+                        val currentTime = System.currentTimeMillis()
+                        
+                        // Se passou muito tempo desde o último chunk, limpa o buffer
+                        if (currentTime - lastChunkTime > CHUNK_TIMEOUT) {
+                            Log.d("SERIAL_BUFFER", "Muito tempo desde o último chunk, limpando buffer")
+                            jsonBuffer = StringBuilder()
+                        }
+                        lastChunkTime = currentTime
+                        
+                        // Adiciona o novo dado ao buffer
+                        jsonBuffer.append(read)
+                        val bufferContent = jsonBuffer.toString()
+                        
+                        // Procura por JSONs completos no buffer
+                        var startIndex = bufferContent.indexOf("{")
+                        while (startIndex != -1) {
+                            var endIndex = findMatchingBrace(bufferContent, startIndex)
+                            if (endIndex == -1) {
+                                break
+                            }
+                            
+                            val potentialJson = bufferContent.substring(startIndex, endIndex + 1)
+                            if (isValidJson(potentialJson)) {
+                                Log.d("SERIAL_BUFFER", "JSON válido encontrado: $potentialJson")
+                                eventSink?.success(potentialJson)
+                                // Remove o JSON processado do buffer
+                                jsonBuffer = StringBuilder(bufferContent.substring(endIndex + 1))
+                                lastProcessedTime = currentTime
+                                break
+                            }
+                            
+                            startIndex = bufferContent.indexOf("{", startIndex + 1)
+                        }
+                        
+                        // Se o buffer estiver muito grande, limpa
+                        if (bufferContent.length > 2000) {
+                            Log.d("SERIAL_BUFFER", "Buffer muito grande, limpando")
+                            jsonBuffer = StringBuilder()
+                            lastProcessedTime = currentTime
                         }
                     } catch (e: Exception) {
-                        Log.e("SERIAL_RECEIVED", "Erro ao decodificar mensagem: ${e.message}")
+                        Log.e("SERIAL_RECEIVED", "Erro ao processar mensagem: ${e.message}")
+                        jsonBuffer = StringBuilder()
+                        lastProcessedTime = System.currentTimeMillis()
                     }
                 }
             }
@@ -110,18 +151,6 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    private fun hexToUtf8String(hex: String): String {
-        return try {
-            val bytes = hex.chunked(2)
-                .map { it.toInt(16).toByte() }
-                .toByteArray()
-            String(bytes, Charsets.UTF_8)
-        } catch (e: Exception) {
-            Log.e("SERIAL_CONVERSION", "Erro ao converter hexadecimal para UTF-8: ${e.message}")
-            ""
-        }
-    }
-
     private fun isValidJson(json: String): Boolean {
         return try {
             JSONObject(json)
@@ -129,6 +158,20 @@ class MainActivity : FlutterActivity() {
         } catch (e: Exception) {
             false
         }
+    }
+
+    private fun findMatchingBrace(str: String, startIndex: Int): Int {
+        var count = 0
+        for (i in startIndex until str.length) {
+            when (str[i]) {
+                '{' -> count++
+                '}' -> {
+                    count--
+                    if (count == 0) return i
+                }
+            }
+        }
+        return -1
     }
 
     private fun sendMessageToPort(message: String?) {
