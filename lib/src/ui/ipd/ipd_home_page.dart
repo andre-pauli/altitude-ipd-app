@@ -111,19 +111,19 @@ class _IpdHomePageState extends State<IpdHomePage> {
                   textStyle:
                       TextStyle(color: Colors.white, fontSize: 40 * widthRatio),
                 ),
-                CustomButton(
-                  label: 'Abrir porta',
-                  backgroundColor: Colors.grey[800]!,
-                  onPressed: () {
-                    controller.enviarComandoBooleano(
-                        acao: "abrir_porta_automatica", estado: true);
-                  },
-                  width: 280 * widthRatio,
-                  height: 108 * heightRatio,
-                  heightIcon: 42 * heightRatio,
-                  textStyle:
-                      TextStyle(color: Colors.white, fontSize: 40 * widthRatio),
-                ),
+                // CustomButton(
+                //   label: 'Abrir porta',
+                //   backgroundColor: Colors.grey[800]!,
+                //   onPressed: () {
+                //     controller.enviarComandoBooleano(
+                //         acao: "abrir_porta_automatica", estado: true);
+                //   },
+                //   width: 280 * widthRatio,
+                //   height: 108 * heightRatio,
+                //   heightIcon: 42 * heightRatio,
+                //   textStyle:
+                //       TextStyle(color: Colors.white, fontSize: 40 * widthRatio),
+                // ),
               ],
             ),
             SizedBox(
