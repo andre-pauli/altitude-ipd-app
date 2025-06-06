@@ -18,7 +18,7 @@ class IpdHomePage extends StatefulWidget {
   State<IpdHomePage> createState() => _IpdHomePageState();
 }
 
-class _IpdHomePageState extends State<IpdHomePage> {
+class _IpdHomePageState extends State<IpdHomePage> with WidgetsBindingObserver {
   final IpdHomeController controller = IpdHomeController();
 
   bool showKeyboard = false;
@@ -28,12 +28,31 @@ class _IpdHomePageState extends State<IpdHomePage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _fakePopulateFields();
     controller.onUpdate = () {
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     };
     controller.enviarComandoBooleano(
         acao: "buscar_dados_iniciais", estado: true);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Force a refresh when the app resumes
+      if (mounted) {
+        setState(() {});
+      }
+    }
   }
 
   @override
