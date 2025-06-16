@@ -1,4 +1,6 @@
+import 'package:altitude_ipd_app/src/services/telegram_service.dart';
 import 'package:altitude_ipd_app/src/ui/_core/image_path_constants.dart';
+import 'package:altitude_ipd_app/src/ui/call_page/select_call_type_page.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/ipd_home_controller.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/andar_indicator_card.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/banner_information_widget.dart';
@@ -6,7 +8,6 @@ import 'package:altitude_ipd_app/src/ui/ipd/widgets/custom_button.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/image_carousel_widget.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/looping_video_player.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/number_buttons_widget.dart';
-import 'package:altitude_ipd_app/src/ui/call_page/select_call_type_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -115,14 +116,58 @@ class _IpdHomePageState extends State<IpdHomePage> with WidgetsBindingObserver {
                   iconPath: ImagePathConstants.iconEmergency,
                   backgroundColor: Colors.red,
                   onPressed: () async {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => SelectCallTypePage(
-                          roomId: controller.nomeObra ?? '-',
-                          mensagens: controller.mensagens ?? [],
-                        ),
-                      ),
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('Confirmar SOS'),
+                          content: Text(
+                              'Deseja realmente entrar em contato com o suporte?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text('Não'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                _sendMessageTelegram();
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text('Suporte Contatado'),
+                                      content: Text(
+                                          'O suporte foi notificado e logo fará o contato.'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text('OK'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                              child: Text('Sim'),
+                            ),
+                          ],
+                        );
+                      },
                     );
+
+                    // Navigator.of(context).push(
+                    //   MaterialPageRoute(
+                    //     builder: (context) => SelectCallTypePage(
+                    //       roomId: controller.nomeObra ?? '-',
+                    //       mensagens: controller.mensagens ?? [],
+                    //     ),
+                    //   ),
+                    // );
                   },
                   width: 280 * widthRatio,
                   height: 108 * heightRatio,
@@ -204,6 +249,12 @@ class _IpdHomePageState extends State<IpdHomePage> with WidgetsBindingObserver {
       controller.capacidadeMaximaKg = 320;
       controller.capacidadePessoas = 4;
     });
+  }
+
+  Future<void> _sendMessageTelegram() async {
+    TelegramService _telegramService = TelegramService();
+    await _telegramService.sendMessage(
+        "O cliente ${controller.nomeObra} fez um chamado pro S.O.S \n Ele está com os seguintes erros: \n ${controller.mensagens?.join('\n') ?? ''}");
   }
 
   Widget _showPublicityCard(double widthRatio, double heightRatio) {
