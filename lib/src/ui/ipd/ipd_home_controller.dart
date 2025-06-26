@@ -29,6 +29,7 @@ class IpdHomeController {
   Map<String, dynamic> andares = {
     "1": {"andar": "0", "descricao": "Andar inicial"},
   };
+  String? dataUltimaManutencao;
 
   Function()? onUpdate;
   Function()? onUpdateWeater;
@@ -89,7 +90,8 @@ class IpdHomeController {
       final Map<String, dynamic>? dados = decodedMessage["dados"];
 
       if (tipo == "status" && dados != null) {
-        if (dados.containsKey("andar_atual")) andarAtual = dados["andar_atual"]??0;
+        if (dados.containsKey("andar_atual"))
+          andarAtual = dados["andar_atual"] ?? 0;
         if (dados.containsKey("temperatura")) {
           temperatura = (dados["temperatura"] as num).toDouble();
         }
@@ -108,7 +110,7 @@ class IpdHomeController {
         if (dados.containsKey("nome_obra")) {
           nomeObra = dados["nome_obra"];
         }
-        if (dados.containsKey("codigo_obra")){
+        if (dados.containsKey("codigo_obra")) {
           codigoObra = dados["codigo_obra"];
         }
 
@@ -125,6 +127,9 @@ class IpdHomeController {
 
         if (latitude != null && longitude != null) {
           onUpdateWeater?.call();
+        }
+        if (dados.containsKey("data_ultima_manutencao")) {
+          dataUltimaManutencao = dados["data_ultima_manutencao"];
         }
 
         onUpdate?.call();

@@ -1,6 +1,5 @@
 import 'package:altitude_ipd_app/src/services/telegram_service.dart';
 import 'package:altitude_ipd_app/src/ui/_core/image_path_constants.dart';
-import 'package:altitude_ipd_app/src/ui/call_page/select_call_type_page.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/ipd_home_controller.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/andar_indicator_card.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/banner_information_widget.dart';
@@ -36,8 +35,11 @@ class _IpdHomePageState extends State<IpdHomePage> with WidgetsBindingObserver {
         setState(() {});
       }
     };
-    controller.enviarComandoBooleano(
-        acao: "buscar_dados_iniciais", estado: true);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.enviarComandoBooleano(
+          acao: "buscar_dados_iniciais", estado: true);
+    });
   }
 
   @override
@@ -175,19 +177,19 @@ class _IpdHomePageState extends State<IpdHomePage> with WidgetsBindingObserver {
                   textStyle:
                       TextStyle(color: Colors.white, fontSize: 40 * widthRatio),
                 ),
-                // CustomButton(
-                //   label: 'Abrir porta',
-                //   backgroundColor: Colors.grey[800]!,
-                //   onPressed: () {
-                //     controller.enviarComandoBooleano(
-                //         acao: "abrir_porta_automatica", estado: true);
-                //   },
-                //   width: 280 * widthRatio,
-                //   height: 108 * heightRatio,
-                //   heightIcon: 42 * heightRatio,
-                //   textStyle:
-                //       TextStyle(color: Colors.white, fontSize: 40 * widthRatio),
-                // ),
+                CustomButton(
+                  label: 'Abrir porta',
+                  backgroundColor: Colors.grey[800]!,
+                  onPressed: () {
+                    controller.enviarComandoBooleano(
+                        acao: "abrir_porta_automatica", estado: true);
+                  },
+                  width: 280 * widthRatio,
+                  height: 108 * heightRatio,
+                  heightIcon: 42 * heightRatio,
+                  textStyle:
+                      TextStyle(color: Colors.white, fontSize: 40 * widthRatio),
+                ),
               ],
             ),
             SizedBox(
@@ -229,7 +231,8 @@ class _IpdHomePageState extends State<IpdHomePage> with WidgetsBindingObserver {
                             color: Colors.white, fontSize: 28.0 * widthRatio)),
                   ],
                 ),
-                Text('Ultima manutenção: \n04/12/2024',
+                Text(
+                    'Ultima manutenção: \n${controller.dataUltimaManutencao ?? '-'}',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         color: Colors.white, fontSize: 28.0 * widthRatio)),
