@@ -45,15 +45,15 @@ class SelectCallTypePage extends StatelessWidget {
               ),
               backgroundColor: Colors.grey[800]!,
               onPressed: () async {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => CallPage(
-                      callPageType: CallPageType.audio,
-                      roomId: roomId,
-                      mensagens: mensagens,
-                    ),
-                  ),
-                );
+                // Navigator.of(context).push(
+                //   MaterialPageRoute(
+                //     builder: (context) => CallPage(
+                //       callPageType: CallPageType.audio,
+                //       roomId: roomId,
+                //       mensagens: mensagens,
+                //     ),
+                //   ),
+                // );
               },
               width: 500 * widthRatio,
               height: 108 * heightRatio,
@@ -72,15 +72,15 @@ class SelectCallTypePage extends StatelessWidget {
               ),
               backgroundColor: Colors.grey[800]!,
               onPressed: () async {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => CallPage(
-                      callPageType: CallPageType.video,
-                      roomId: roomId,
-                      mensagens: mensagens,
-                    ),
-                  ),
-                );
+                // Navigator.of(context).push(
+                //   MaterialPageRoute(
+                //     builder: (context) => CallPage(
+                //       callPageType: CallPageType.video,
+                //       roomId: roomId,
+                //       mensagens: mensagens,
+                //     ),
+                //   ),
+                // );
               },
               width: 500 * widthRatio,
               height: 108 * heightRatio,

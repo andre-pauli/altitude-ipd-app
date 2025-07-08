@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
+// import 'package:flutter/services.dart';
 
 class IpdHomeController {
   static final IpdHomeController _instance = IpdHomeController._internal();
@@ -9,12 +9,14 @@ class IpdHomeController {
   factory IpdHomeController() => _instance;
 
   IpdHomeController._internal() {
-    startListeningToMessages();
+    // startListeningToMessages();
+    // Simular dados para Linux
+    _simulateData();
   }
 
-  static const platform = MethodChannel("com.example.altitude_ipd_app/channel");
-  static const eventChannel =
-      EventChannel("com.example.altitude_ipd_app/receive_channel");
+  // static const platform = MethodChannel("com.example.altitude_ipd_app/channel");
+  // static const eventChannel =
+  //     EventChannel("com.example.altitude_ipd_app/receive_channel");
 
   int andarAtual = 1;
   double? temperatura;
@@ -34,14 +36,29 @@ class IpdHomeController {
   Function()? onUpdate;
   Function()? onUpdateWeater;
 
+  void _simulateData() {
+    // Simular dados para demonstração no Linux
+    temperatura = 25.0;
+    capacidadeMaximaKg = 1000;
+    capacidadePessoas = 8;
+    latitude = -23.5505;
+    longitude = -46.6333;
+    direcaoMovimentacao = "Parado";
+    mensagens = ["Sistema iniciado", "Linux mode ativo"];
+    nomeObra = "Projeto Demo";
+    codigoObra = "DEMO001";
+    dataUltimaManutencao = "2024-01-01";
+  }
+
   Future<void> sendMessageToNative(Map<String, dynamic> mensagem) async {
     try {
       final String jsonMessage = jsonEncode(mensagem);
       log('mensagem enviada: $jsonMessage');
-      await platform.invokeMethod('sendMessage', jsonMessage);
-    } on PlatformException catch (e) {
+      // await platform.invokeMethod('sendMessage', jsonMessage);
+      print("Linux mode: Mensagem simulada - $jsonMessage");
+    } catch (e) {
       if (kDebugMode) {
-        print("Erro ao enviar mensagem para o Android: ${e.message}");
+        print("Erro ao enviar mensagem: ${e.toString()}");
       }
     }
   }
@@ -55,6 +72,10 @@ class IpdHomeController {
       "timestamp": DateTime.now().toIso8601String(),
     };
     await sendMessageToNative(mensagem);
+
+    // Simular mudança de andar no Linux
+    andarAtual = andarDestino;
+    onUpdate?.call();
   }
 
   Future<void> enviarComandoBooleano(
@@ -71,16 +92,16 @@ class IpdHomeController {
     await sendMessageToNative(mensagem);
   }
 
-  void startListeningToMessages() {
-    eventChannel.receiveBroadcastStream().listen((message) {
-      final txt = message as String;
-      _processarMensagemRecebida(txt);
-    }, onError: (error) {
-      if (kDebugMode) {
-        print("Erro ao receber mensagem do Android: $error");
-      }
-    });
-  }
+  // void startListeningToMessages() {
+  //   eventChannel.receiveBroadcastStream().listen((message) {
+  //     final txt = message as String;
+  //     _processarMensagemRecebida(txt);
+  //   }, onError: (error) {
+  //     if (kDebugMode) {
+  //       print("Erro ao receber mensagem do Android: $error");
+  //     }
+  //   });
+  // }
 
   void _processarMensagemRecebida(String message) {
     print('Mensagem recebida: $message');
