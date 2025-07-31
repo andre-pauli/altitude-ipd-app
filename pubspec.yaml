@@ -24,10 +24,13 @@ dependencies:
   package_info_plus: ^8.1.1
   video_player: ^2.9.2
   carousel_slider: ^5.0.0
-  # firebase_core: ^3.10.1  # Comentado - pode ter problemas no ARM64
-  # firebase_auth: ^5.4.1  # Comentado - pode ter problemas no ARM64
-  # firebase_database: ^11.3.1  # Comentado - pode ter problemas no ARM64
-  # firebase_messaging: ^15.2.1  # Comentado - pode ter problemas no ARM64
+  # Firebase dependencies for support integration
+  firebase_core: ^3.10.1
+  firebase_database: ^11.3.1
+  firebase_messaging: ^15.2.1
+  # WebRTC for call functionality
+  flutter_webrtc: ^0.12.2
+  permission_handler: ^11.3.1
   # googleapis_auth: ^1.6.0  # Comentado - pode ter problemas no ARM64
 
 dev_dependencies:

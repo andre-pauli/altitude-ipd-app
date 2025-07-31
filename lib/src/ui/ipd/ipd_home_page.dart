@@ -1,5 +1,6 @@
 import 'package:altitude_ipd_app/src/services/telegram_service.dart';
 import 'package:altitude_ipd_app/src/ui/_core/image_path_constants.dart';
+import 'package:altitude_ipd_app/src/ui/_core/enumerators.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/ipd_home_controller.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/andar_indicator_card.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/banner_information_widget.dart';
@@ -7,6 +8,7 @@ import 'package:altitude_ipd_app/src/ui/ipd/widgets/custom_button.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/image_carousel_widget.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/looping_video_player.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/number_buttons_widget.dart';
+import 'package:altitude_ipd_app/src/ui/call_page/call_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -135,25 +137,7 @@ class _IpdHomePageState extends State<IpdHomePage> with WidgetsBindingObserver {
                             TextButton(
                               onPressed: () {
                                 Navigator.of(context).pop();
-                                _sendMessageTelegram();
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: Text('Suporte Contatado'),
-                                      content: Text(
-                                          'O suporte foi notificado e logo fará o contato.'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                          child: Text('OK'),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
+                                _showCallTypeSelection();
                               },
                               child: Text('Sim'),
                             ),
@@ -258,6 +242,72 @@ class _IpdHomePageState extends State<IpdHomePage> with WidgetsBindingObserver {
     TelegramService _telegramService = TelegramService();
     await _telegramService.sendMessage(
         "O cliente ${controller.nomeObra} fez um chamado pro S.O.S \n Ele está com os seguintes erros: \n ${controller.mensagens?.join('\n') ?? ''}");
+  }
+
+  void _showCallTypeSelection() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Tipo de Chamada'),
+          content: const Text('Selecione o tipo de chamada:'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _startCall(CallPageType.audio);
+              },
+              child: const Text('Chamada de Voz'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _startCall(CallPageType.video);
+              },
+              child: const Text('Chamada de Vídeo'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _sendMessageTelegram();
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('Suporte Contatado'),
+                      content: const Text(
+                          'O suporte foi notificado e logo fará o contato.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('OK'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+              child: const Text('Apenas Notificar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _startCall(CallPageType callType) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => CallPage(
+          callPageType: callType,
+          roomId: controller.nomeObra ??
+              'Elevador-${DateTime.now().millisecondsSinceEpoch}',
+          mensagens: controller.mensagens ?? [],
+        ),
+      ),
+    );
   }
 
   Widget _showPublicityCard(double widthRatio, double heightRatio) {
