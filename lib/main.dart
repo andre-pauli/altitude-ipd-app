@@ -7,19 +7,36 @@ import 'package:flutter/services.dart';
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  await loginAnonymously();
-  runApp(const AltitudeIpdApp());
+  try {
+    print('=== INICIANDO ALTITUDE IPD APP ===');
+
+    WidgetsFlutterBinding.ensureInitialized();
+    print('Flutter binding inicializado');
+
+    await Firebase.initializeApp();
+    print('Firebase inicializado');
+
+    await loginAnonymously();
+    print('Login anônimo realizado');
+
+    print('=== ALTITUDE IPD APP INICIADO COM SUCESSO ===');
+    runApp(const AltitudeIpdApp());
+  } catch (e) {
+    print('ERRO ao inicializar app: $e');
+    rethrow;
+  }
 }
 
 Future<User?> loginAnonymously() async {
   try {
+    print('Iniciando login anônimo...');
     UserCredential userCredential =
         await FirebaseAuth.instance.signInAnonymously();
+    print(
+        'Login anônimo realizado com sucesso - UID: ${userCredential.user?.uid}');
     return userCredential.user;
   } catch (e) {
-    print("Login Error: $e");
+    print("ERRO no login anônimo: $e");
     return null;
   }
 }

@@ -96,40 +96,54 @@ class _CallPageState extends State<CallPage> {
 
   Future<void> _cleanupResources() async {
     try {
+      log('=== LIMPANDO RECURSOS ===');
+
       // Cancela timers
+      log('Cancelando timers...');
       _callingTimer?.cancel();
       _callDurationTimer?.cancel();
+      log('Timers cancelados');
 
       // Cancela subscriptions
+      log('Cancelando subscriptions...');
       _callStatusSubscription?.cancel();
       _answerSubscription?.cancel();
       _iceCandidatesSubscription?.cancel();
+      log('Subscriptions cancelados');
 
       // Para tracks de mídia
       if (_localStream != null) {
+        log('Parando tracks de mídia...');
         _localStream!.getTracks().forEach((track) {
           track.stop();
           track.enabled = false;
+          log('Track ${track.kind} parada');
         });
         await _localStream?.dispose();
         _localStream = null;
+        log('Stream local descartado');
       }
 
       // Limpa renderers
       if (_localRenderer != null) {
+        log('Limpando renderer local...');
         _localRenderer!.srcObject = null;
         await _localRenderer?.dispose();
         _localRenderer = null;
+        log('Renderer local descartado');
       }
 
       if (_remoteRenderer != null) {
+        log('Limpando renderer remoto...');
         _remoteRenderer!.srcObject = null;
         await _remoteRenderer?.dispose();
         _remoteRenderer = null;
+        log('Renderer remoto descartado');
       }
 
       // Fecha peer connection
       if (_peerConnection != null) {
+        log('Fechando peer connection...');
         _peerConnection?.onIceCandidate = null;
         _peerConnection?.onIceConnectionState = null;
         _peerConnection?.onConnectionState = null;
@@ -137,32 +151,40 @@ class _CallPageState extends State<CallPage> {
         _peerConnection?.onTrack = null;
         await _peerConnection?.close();
         _peerConnection = null;
+        log('Peer connection fechada');
       }
 
-      log('Recursos limpos com sucesso');
+      log('=== RECURSOS LIMPOS COM SUCESSO ===');
     } catch (e) {
-      log('Erro ao limpar recursos: $e');
+      log('ERRO ao limpar recursos: $e');
     }
   }
 
   void _initialize() async {
     try {
+      log('=== INICIANDO CALL PAGE ===');
+      log('Tipo de chamada: ${widget.callPageType}');
+      log('Room ID: ${widget.roomId}');
+
       roomId = widget.roomId;
       await _initializeFirebaseParams();
 
       if (await FirebaseConfigSupport.checkDatabaseInstance()) {
+        log('Firebase configurado com sucesso');
         await _checkPermissions();
         await _initializeRenderers();
         await _startCallProcess();
       } else {
+        log('ERRO: Firebase não configurado');
         await _stopCallProcess(context: context, endCallRemotely: false);
       }
 
       setState(() {
         isInitializing = false;
       });
+      log('=== CALL PAGE INICIADA COM SUCESSO ===');
     } catch (e) {
-      log('Error initializing call: $e');
+      log('ERRO ao inicializar call: $e');
       if (mounted) {
         setState(() {
           isError = true;
@@ -211,15 +233,19 @@ class _CallPageState extends State<CallPage> {
     if (!mounted) return;
 
     try {
+      log('Inicializando renderer local...');
       _localRenderer = RTCVideoRenderer();
-      _remoteRenderer = RTCVideoRenderer();
-
       await _localRenderer?.initialize();
+      log('Renderer local inicializado');
+
+      log('Inicializando renderer remoto...');
+      _remoteRenderer = RTCVideoRenderer();
       await _remoteRenderer?.initialize();
+      log('Renderer remoto inicializado');
 
       log('Renderers inicializados com sucesso');
     } catch (e) {
-      log('Erro ao inicializar renderers: $e');
+      log('ERRO ao inicializar renderers: $e');
       rethrow;
     }
   }
@@ -248,7 +274,10 @@ class _CallPageState extends State<CallPage> {
 
   Future<void> _startCallProcess() async {
     try {
+      log('=== INICIANDO PROCESSO DE CHAMADA ===');
+
       // Cria entrada no Firebase
+      log('Criando entrada no Firebase...');
       await _supportDatabase.ref("calls/$roomId").set({
         "status": "pending",
         "offer": null,
@@ -260,24 +289,31 @@ class _CallPageState extends State<CallPage> {
         "ice_candidates": {"caller": {}, "callee": {}},
         'created_at': DateTime.now().toIso8601String(),
       });
+      log('Entrada no Firebase criada com sucesso');
 
       // Envia notificação push
+      log('Enviando notificação push...');
       await _sendPushNotificationToSupport();
+      log('Notificação push enviada');
 
       // Inicia timer de chamada
+      log('Iniciando timer de chamada...');
       _startCallTimer();
 
       // Escuta por mudanças no status
+      log('Configurando listeners...');
       _listenForCallStatus();
 
       // Inicia WebRTC
+      log('Iniciando WebRTC...');
       await _startWebRTC();
 
       setState(() {
         isCalling = true;
       });
+      log('=== PROCESSO DE CHAMADA INICIADO COM SUCESSO ===');
     } catch (e) {
-      log('Error starting call process: $e');
+      log('ERRO ao iniciar processo de chamada: $e');
       if (mounted) {
         setState(() {
           isError = true;
@@ -299,21 +335,25 @@ class _CallPageState extends State<CallPage> {
 
   Future<void> _sendPushNotificationToSupport() async {
     try {
+      log('Buscando tokens FCM do suporte...');
       final tokensSnapshot =
           await _supportDatabase.ref("support_fcm_tokens").get();
 
       if (tokensSnapshot.exists) {
         final tokens = Map<String, dynamic>.from(tokensSnapshot.value as Map);
+        log('Tokens encontrados: ${tokens.length}');
 
         for (var tokenEntry in tokens.entries) {
           final token = tokenEntry.value['token'];
+          log('Enviando notificação para token: ${tokenEntry.key}');
           await sendPushNotification(token, widget.roomId);
         }
+        log('Todas as notificações push enviadas');
       } else {
-        log("Nenhum token FCM encontrado.");
+        log("Nenhum token FCM encontrado para o suporte");
       }
     } catch (e) {
-      log('Erro ao enviar push notification: $e');
+      log('ERRO ao enviar push notification: $e');
     }
   }
 
@@ -381,6 +421,7 @@ class _CallPageState extends State<CallPage> {
   }
 
   void _listenForCallStatus() {
+    log('Configurando listener para status da chamada...');
     _callStatusSubscription?.cancel();
     _callStatusSubscription = _supportDatabase
         .ref("calls/$roomId/status")
@@ -389,9 +430,10 @@ class _CallPageState extends State<CallPage> {
       if (!mounted) return;
 
       final status = event.snapshot.value as String?;
-      log('Call status changed: $status');
+      log('Status da chamada alterado: $status');
 
       if (status == "active") {
+        log('Chamada ativada - cancelando timer e iniciando duração');
         _callingTimer?.cancel();
         setState(() {
           inCall = true;
@@ -399,20 +441,27 @@ class _CallPageState extends State<CallPage> {
         });
         _startCallDurationTimer();
       } else if (status == "declined") {
+        log('Chamada recusada');
         setState(() {
           isDeclined = true;
           isCalling = false;
         });
       } else if (status == "ended") {
+        log('Chamada encerrada - parando processo');
         await _stopCallProcess(context: context, endCallRemotely: false);
       }
     });
+    log('Listener para status da chamada configurado');
   }
 
   Future<void> _startWebRTC() async {
     try {
+      log('=== INICIANDO WEBRTC ===');
+
       // Cria peer connection
+      log('Criando peer connection...');
       _peerConnection = await createPeerConnection(_configuration);
+      log('Peer connection criada com sucesso');
 
       // Configura event handlers
       _peerConnection?.onConnectionState = (RTCPeerConnectionState state) {
@@ -449,6 +498,9 @@ class _CallPageState extends State<CallPage> {
       };
 
       // Obtém stream de mídia
+      log('Obtendo stream de mídia...');
+      log('Tipo de chamada: ${widget.callPageType == CallPageType.video ? "vídeo" : "áudio"}');
+
       _localStream = await navigator.mediaDevices.getUserMedia({
         'audio': {
           'echoCancellation': true,
@@ -467,24 +519,36 @@ class _CallPageState extends State<CallPage> {
             : false,
       });
 
+      log('Stream de mídia obtido com sucesso');
+      log('Tracks no stream: ${_localStream?.getTracks().length}');
+      _localStream?.getTracks().forEach((track) {
+        log('Track: ${track.kind} - enabled: ${track.enabled}');
+      });
+
       // Configura renderer local
+      log('Configurando renderer local...');
       if (_localRenderer != null) {
         _localRenderer!.srcObject = _localStream;
+        log('Renderer local configurado');
       }
 
       // Adiciona tracks ao peer connection
+      log('Adicionando tracks ao peer connection...');
       _localStream?.getTracks().forEach((track) {
         track.enabled = true;
         _peerConnection?.addTrack(track, _localStream!);
+        log('Track ${track.kind} adicionada ao peer connection');
       });
 
       // Configura handler para stream remoto
       _peerConnection?.onTrack = (RTCTrackEvent event) {
+        log('onTrack chamado - streams: ${event.streams.length}');
         if (event.streams.isNotEmpty) {
           log('Stream remoto recebido: ${event.streams[0].id}');
           setState(() {
             if (_remoteRenderer != null) {
               _remoteRenderer!.srcObject = event.streams.first;
+              log('Stream remoto configurado no renderer');
             }
             inCall = true;
           });
@@ -492,6 +556,7 @@ class _CallPageState extends State<CallPage> {
       };
 
       // Cria e envia offer
+      log('Criando offer...');
       var offer = await _peerConnection?.createOffer();
       await _peerConnection?.setLocalDescription(offer!);
       await _supportDatabase.ref("calls/$roomId/offer").set({
@@ -502,15 +567,19 @@ class _CallPageState extends State<CallPage> {
       log('Offer criada e enviada');
 
       // Escuta por answer e ICE candidates
+      log('Configurando listeners para answer e ICE candidates...');
       _listenForAnswer();
       _listenForIceCandidates("callee");
+
+      log('=== WEBRTC INICIADO COM SUCESSO ===');
     } catch (e) {
-      log('Erro ao iniciar WebRTC: $e');
+      log('ERRO ao iniciar WebRTC: $e');
       rethrow;
     }
   }
 
   Future<void> _listenForAnswer() async {
+    log('Configurando listener para answer...');
     _answerSubscription?.cancel();
     _answerSubscription = _supportDatabase
         .ref("calls/$roomId/answer")
@@ -519,21 +588,28 @@ class _CallPageState extends State<CallPage> {
       if (!mounted) return;
 
       if (event.snapshot.value != null) {
+        log('Answer recebida do suporte');
         var answerData = event.snapshot.value as Map;
         var answer =
             RTCSessionDescription(answerData['sdp'], answerData['type']);
+
+        log('Configurando remote description...');
         await _peerConnection?.setRemoteDescription(answer);
+        log('Remote description configurada');
 
         setState(() {
           inCall = true;
         });
+        log('Estado da chamada atualizado para ativo');
 
         log('Answer processada com sucesso');
       }
     });
+    log('Listener para answer configurado');
   }
 
   Future<void> _listenForIceCandidates(String receiver) async {
+    log('Configurando listener para ICE candidates do $receiver...');
     _iceCandidatesSubscription?.cancel();
     _iceCandidatesSubscription = _supportDatabase
         .ref("calls/$roomId/ice_candidates/$receiver")
@@ -542,16 +618,20 @@ class _CallPageState extends State<CallPage> {
       if (!mounted) return;
 
       if (event.snapshot.value != null) {
+        log('ICE candidate recebido do $receiver');
         var candidateData = event.snapshot.value as Map;
         var candidate = RTCIceCandidate(
           candidateData['candidate'],
           candidateData['sdpMid'],
           candidateData['sdpMLineIndex'],
         );
+
+        log('Adicionando ICE candidate ao peer connection...');
         await _peerConnection?.addCandidate(candidate);
-        log('ICE candidate adicionado');
+        log('ICE candidate adicionado com sucesso');
       }
     });
+    log('Listener para ICE candidates do $receiver configurado');
   }
 
   void toggleMute() {
@@ -563,7 +643,11 @@ class _CallPageState extends State<CallPage> {
           isMuted = !audioTrack.enabled;
         });
         log('Microfone ${audioTrack.enabled ? "ativado" : "desativado"}');
+      } else {
+        log('ERRO: Nenhuma track de áudio encontrada');
       }
+    } else {
+      log('ERRO: Stream local não disponível');
     }
   }
 
@@ -576,7 +660,11 @@ class _CallPageState extends State<CallPage> {
           isCameraOff = !videoTrack.enabled;
         });
         log('Câmera ${videoTrack.enabled ? "ativada" : "desativada"}');
+      } else {
+        log('ERRO: Nenhuma track de vídeo encontrada');
       }
+    } else {
+      log('ERRO: Stream local não disponível ou não é chamada de vídeo');
     }
   }
 
@@ -874,6 +962,9 @@ class _CallPageState extends State<CallPage> {
     if (isStoppingCall) return;
 
     try {
+      log('=== ENCERRANDO PROCESSO DE CHAMADA ===');
+      log('endCallRemotely: $endCallRemotely');
+
       if (!mounted) return;
 
       setState(() {
@@ -882,24 +973,33 @@ class _CallPageState extends State<CallPage> {
       });
 
       if (endCallRemotely) {
+        log('Atualizando status da chamada para "ended"...');
         await _supportDatabase.ref('calls/$roomId/status').set("ended");
+        log('Status da chamada atualizado');
       }
 
+      log('Limpando recursos...');
       await _cleanupResources();
 
       // Remove dados da chamada do Firebase
+      log('Removendo dados da chamada do Firebase...');
       await _supportDatabase.ref("calls/$roomId").remove();
+      log('Dados da chamada removidos');
 
       if (mounted) {
+        log('Navegando para a tela inicial...');
         navigatorKey.currentState?.pushAndRemoveUntil(
           MaterialPageRoute(
             builder: (context) => const IpdHomePage(),
           ),
           (route) => false,
         );
+        log('Navegação concluída');
       }
+
+      log('=== PROCESSO DE CHAMADA ENCERRADO COM SUCESSO ===');
     } catch (e) {
-      log('Error stopping call process: $e');
+      log('ERRO ao encerrar processo de chamada: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -912,6 +1012,9 @@ class _CallPageState extends State<CallPage> {
   void _handleConnectionError() {
     if (!mounted) return;
 
+    log('=== ERRO DE CONEXÃO DETECTADO ===');
+    log('Tentando reconexão...');
+
     setState(() {
       isError = true;
       errorMessage = 'Erro na conexão. Tentando reconectar...';
@@ -922,16 +1025,25 @@ class _CallPageState extends State<CallPage> {
 
   Future<void> _attemptReconnection() async {
     try {
+      log('=== TENTANDO RECONEXÃO ===');
+
       setState(() {
         isError = false;
         errorMessage = '';
       });
 
+      log('Limpando recursos para reconexão...');
       await _cleanupResources();
+
+      log('Aguardando 2 segundos antes de reconectar...');
       await Future.delayed(const Duration(seconds: 2));
+
+      log('Iniciando WebRTC para reconexão...');
       await _startWebRTC();
+
+      log('=== RECONEXÃO REALIZADA COM SUCESSO ===');
     } catch (e) {
-      log('Reconnection failed: $e');
+      log('ERRO na reconexão: $e');
       if (mounted) {
         setState(() {
           isError = true;
