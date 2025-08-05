@@ -1,4 +1,5 @@
 import 'package:altitude_ipd_app/src/ui/ipd/ipd_home_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,7 +9,19 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await loginAnonymously();
   runApp(const AltitudeIpdApp());
+}
+
+Future<User?> loginAnonymously() async {
+  try {
+    UserCredential userCredential =
+        await FirebaseAuth.instance.signInAnonymously();
+    return userCredential.user;
+  } catch (e) {
+    print("Login Error: $e");
+    return null;
+  }
 }
 
 class AltitudeIpdApp extends StatefulWidget {
