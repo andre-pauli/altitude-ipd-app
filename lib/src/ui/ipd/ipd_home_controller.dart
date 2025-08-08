@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter/foundation.dart';
+import '../../services/websocket_service.dart';
 // import 'package:flutter/services.dart';
 
 class IpdHomeController {
@@ -9,9 +10,44 @@ class IpdHomeController {
   factory IpdHomeController() => _instance;
 
   IpdHomeController._internal() {
+    _initWebSocket();
     // startListeningToMessages();
     // Simular dados para Linux
     _simulateData();
+  }
+
+  // WebSocket service
+  final WebSocketService _webSocketService = WebSocketService();
+  bool _useWebSocket = true; // Flag para escolher entre RS485 e WebSocket
+
+  bool get useWebSocket => _useWebSocket;
+  bool get isWebSocketConnected => _webSocketService.isConnected;
+  WebSocketService get webSocketService => _webSocketService;
+
+  void setUseWebSocket(bool use) {
+    _useWebSocket = use;
+    if (use) {
+      _webSocketService.connect();
+    } else {
+      _webSocketService.disconnect();
+    }
+  }
+
+  void _initWebSocket() {
+    _webSocketService.onDataReceived = (data) {
+      _processarMensagemRecebida(jsonEncode(data));
+    };
+    _webSocketService.onConnected = () {
+      print('WebSocket conectado');
+      onUpdate?.call();
+    };
+    _webSocketService.onDisconnected = () {
+      print('WebSocket desconectado');
+      onUpdate?.call();
+    };
+    _webSocketService.onError = (error) {
+      print('Erro no WebSocket: $error');
+    };
   }
 
   // static const platform = MethodChannel("com.example.altitude_ipd_app/channel");
@@ -54,8 +90,15 @@ class IpdHomeController {
     try {
       final String jsonMessage = jsonEncode(mensagem);
       log('mensagem enviada: $jsonMessage');
-      // await platform.invokeMethod('sendMessage', jsonMessage);
-      print("Linux mode: Mensagem simulada - $jsonMessage");
+
+      if (_useWebSocket && _webSocketService.isConnected) {
+        // Usar WebSocket se estiver ativado e conectado
+        _webSocketService.sendMessage(mensagem);
+      } else {
+        // Usar RS485 (simulado no Linux)
+        // await platform.invokeMethod('sendMessage', jsonMessage);
+        print("Linux mode: Mensagem simulada - $jsonMessage");
+      }
     } catch (e) {
       if (kDebugMode) {
         print("Erro ao enviar mensagem: ${e.toString()}");
@@ -64,14 +107,18 @@ class IpdHomeController {
   }
 
   Future<void> enviarComandoIrParaAndar(int andarDestino) async {
-    final Map<String, dynamic> mensagem = {
-      "tipo": "comando",
-      "acao": "ir_para_andar",
-      "andar_destino": andarDestino,
-      "dados": null,
-      "timestamp": DateTime.now().toIso8601String(),
-    };
-    await sendMessageToNative(mensagem);
+    if (_useWebSocket && _webSocketService.isConnected) {
+      await _webSocketService.sendGoToFloor(andarDestino);
+    } else {
+      final Map<String, dynamic> mensagem = {
+        "tipo": "comando",
+        "acao": "ir_para_andar",
+        "andar_destino": andarDestino,
+        "dados": null,
+        "timestamp": DateTime.now().toIso8601String(),
+      };
+      await sendMessageToNative(mensagem);
+    }
 
     // Simular mudança de andar no Linux
     andarAtual = andarDestino;
@@ -80,16 +127,29 @@ class IpdHomeController {
 
   Future<void> enviarComandoBooleano(
       {required String acao, required bool estado}) async {
-    final Map<String, dynamic> mensagem = {
-      "tipo": "comando",
-      "acao": acao,
-      "andar_destino": null,
-      "dados": {
-        "estado": estado,
-      },
-      "timestamp": DateTime.now().toIso8601String(),
-    };
-    await sendMessageToNative(mensagem);
+    if (_useWebSocket && _webSocketService.isConnected) {
+      await _webSocketService.sendBooleanCommand(
+        action: acao,
+        estado: estado,
+      );
+    } else {
+      final Map<String, dynamic> mensagem = {
+        "tipo": "comando",
+        "acao": acao,
+        "andar_destino": null,
+        "dados": {
+          "estado": estado,
+        },
+        "timestamp": DateTime.now().toIso8601String(),
+      };
+      await sendMessageToNative(mensagem);
+    }
+  }
+
+  Future<void> requestInitialData() async {
+    if (_useWebSocket && _webSocketService.isConnected) {
+      await _webSocketService.requestInitialData();
+    }
   }
 
   // void startListeningToMessages() {

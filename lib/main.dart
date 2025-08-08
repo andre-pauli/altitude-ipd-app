@@ -1,5 +1,5 @@
 import 'package:altitude_ipd_app/src/ui/ipd/ipd_home_page.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,7 +16,7 @@ void main() async {
     await Firebase.initializeApp();
     print('Firebase inicializado');
 
-    await loginAnonymously();
+    // await loginAnonymously();
     print('Login anônimo realizado');
 
     print('=== ALTITUDE IPD APP INICIADO COM SUCESSO ===');
@@ -27,19 +27,19 @@ void main() async {
   }
 }
 
-Future<User?> loginAnonymously() async {
-  try {
-    print('Iniciando login anônimo...');
-    UserCredential userCredential =
-        await FirebaseAuth.instance.signInAnonymously();
-    print(
-        'Login anônimo realizado com sucesso - UID: ${userCredential.user?.uid}');
-    return userCredential.user;
-  } catch (e) {
-    print("ERRO no login anônimo: $e");
-    return null;
-  }
-}
+// Future<User?> loginAnonymously() async {
+//   try {
+//     print('Iniciando login anônimo...');
+//     UserCredential userCredential =
+//         await FirebaseAuth.instance.signInAnonymously();
+//     print(
+//         'Login anônimo realizado com sucesso - UID: ${userCredential.user?.uid}');
+//     return userCredential.user;
+//   } catch (e) {
+//     print("ERRO no login anônimo: $e");
+//     return null;
+//   }
+// }
 
 class AltitudeIpdApp extends StatefulWidget {
   const AltitudeIpdApp({super.key});

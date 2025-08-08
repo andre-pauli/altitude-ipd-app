@@ -8,6 +8,7 @@ import 'package:altitude_ipd_app/src/ui/ipd/widgets/custom_button.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/image_carousel_widget.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/looping_video_player.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/number_buttons_widget.dart';
+import 'package:altitude_ipd_app/src/ui/ipd/widgets/communication_settings_widget.dart';
 import 'package:altitude_ipd_app/src/ui/call_page/call_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -213,13 +214,45 @@ class _IpdHomePageState extends State<IpdHomePage> with WidgetsBindingObserver {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                GestureDetector(
-                  onLongPress: () async {},
-                  child: SizedBox(
-                    width: 268.3 * widthRatio,
-                    height: 107.89 * heightRatio,
-                    child: SvgPicture.asset(ImagePathConstants.altitudeLogo),
-                  ),
+                Row(
+                  children: [
+                    GestureDetector(
+                      onLongPress: () async {},
+                      child: SizedBox(
+                        width: 268.3 * widthRatio,
+                        height: 107.89 * heightRatio,
+                        child:
+                            SvgPicture.asset(ImagePathConstants.altitudeLogo),
+                      ),
+                    ),
+                    SizedBox(width: 16 * widthRatio),
+                    // Botão de configuração de comunicação
+                    Container(
+                      decoration: BoxDecoration(
+                        color: controller.useWebSocket
+                            ? Colors.blue
+                            : Colors.grey[700],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: IconButton(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) =>
+                                const CommunicationSettingsWidget(),
+                          );
+                        },
+                        icon: Icon(
+                          controller.useWebSocket ? Icons.wifi : Icons.cable,
+                          color: Colors.white,
+                          size: 24 * widthRatio,
+                        ),
+                        tooltip: controller.useWebSocket
+                            ? 'WebSocket Ativo'
+                            : 'RS485 Ativo',
+                      ),
+                    ),
+                  ],
                 ),
                 Column(
                   children: [
