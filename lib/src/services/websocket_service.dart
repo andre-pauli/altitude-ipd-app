@@ -30,42 +30,48 @@ class WebSocketService {
 
   Future<void> connect() async {
     if (_isConnected) {
-      print('WebSocket já está conectado');
+      print('WebSocket: Já está conectado');
       return;
     }
 
     try {
-      print('Tentando conectar ao WebSocket: $_serverUrl');
+      print('WebSocket: 🔗 Tentando conectar ao servidor: $_serverUrl');
 
       final uri = Uri.parse(_serverUrl);
+      print('WebSocket: 📍 URI parseada: $uri');
+
       final socket = await WebSocket.connect(uri.toString());
+      print('WebSocket: ✅ Socket criado com sucesso');
+
       _channel = IOWebSocketChannel(socket);
       _isConnected = true;
       _reconnectAttempts = 0;
 
-      print('WebSocket conectado com sucesso');
+      print('WebSocket: 🎉 Conectado com sucesso ao servidor');
       onConnected?.call();
 
       // Escuta mensagens
       _channel!.stream.listen(
         (data) {
+          print('WebSocket: 📨 Dados recebidos do servidor');
           _handleMessage(data);
         },
         onError: (error) {
-          print('Erro no WebSocket: $error');
+          print('WebSocket: ❌ Erro na conexão: $error');
           _isConnected = false;
           onError?.call(error.toString());
           _scheduleReconnect();
         },
         onDone: () {
-          print('WebSocket desconectado');
+          print('WebSocket: 🔌 Conexão fechada pelo servidor');
           _isConnected = false;
           onDisconnected?.call();
           _scheduleReconnect();
         },
       );
     } catch (e) {
-      print('Erro ao conectar WebSocket: $e');
+      print('WebSocket: ❌ Erro ao conectar: $e');
+      print('WebSocket: 💡 Verifique se o servidor está rodando e acessível');
       onError?.call(e.toString());
       _scheduleReconnect();
     }

@@ -14,6 +14,14 @@ class IpdHomeController {
     // startListeningToMessages();
     // Simular dados para Linux
     _simulateData();
+
+    // Conecta automaticamente ao WebSocket após um pequeno delay
+    Future.delayed(Duration(seconds: 2), () {
+      if (_useWebSocket) {
+        print('IPD Controller: 🔄 Conectando automaticamente ao WebSocket...');
+        _webSocketService.connect();
+      }
+    });
   }
 
   // WebSocket service
@@ -27,26 +35,34 @@ class IpdHomeController {
   void setUseWebSocket(bool use) {
     _useWebSocket = use;
     if (use) {
+      print('IPD Controller: 🌐 Ativando modo WebSocket');
       _webSocketService.connect();
     } else {
+      print('IPD Controller: 📡 Desativando modo WebSocket');
       _webSocketService.disconnect();
     }
   }
 
   void _initWebSocket() {
+    print('IPD Controller: 🔧 Inicializando WebSocket...');
+
     _webSocketService.onDataReceived = (data) {
+      print('IPD Controller: 📨 Dados recebidos via WebSocket');
       _processarMensagemRecebida(jsonEncode(data));
     };
+
     _webSocketService.onConnected = () {
-      print('WebSocket conectado');
+      print('IPD Controller: ✅ WebSocket conectado com sucesso');
       onUpdate?.call();
     };
+
     _webSocketService.onDisconnected = () {
-      print('WebSocket desconectado');
+      print('IPD Controller: 🔌 WebSocket desconectado');
       onUpdate?.call();
     };
+
     _webSocketService.onError = (error) {
-      print('Erro no WebSocket: $error');
+      print('IPD Controller: ❌ Erro no WebSocket: $error');
     };
   }
 
