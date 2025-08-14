@@ -225,33 +225,6 @@ class _IpdHomePageState extends State<IpdHomePage> with WidgetsBindingObserver {
                             SvgPicture.asset(ImagePathConstants.altitudeLogo),
                       ),
                     ),
-                    SizedBox(width: 16 * widthRatio),
-                    // Botão de configuração de comunicação
-                    Container(
-                      decoration: BoxDecoration(
-                        color: controller.useWebSocket
-                            ? Colors.blue
-                            : Colors.grey[700],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: IconButton(
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) =>
-                                const CommunicationSettingsWidget(),
-                          );
-                        },
-                        icon: Icon(
-                          controller.useWebSocket ? Icons.wifi : Icons.cable,
-                          color: Colors.white,
-                          size: 24 * widthRatio,
-                        ),
-                        tooltip: controller.useWebSocket
-                            ? 'WebSocket Ativo'
-                            : 'RS485 Ativo',
-                      ),
-                    ),
                   ],
                 ),
                 Column(
