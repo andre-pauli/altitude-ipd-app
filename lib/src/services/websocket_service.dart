@@ -10,7 +10,7 @@ class WebSocketService {
 
   WebSocketChannel? _channel;
   bool _isConnected = false;
-  String _serverUrl = 'ws://quadro-elevador.local:8765';
+  String _serverUrl = 'ws://10.0.0.233:8765'; // IP padrão mais comum
   int _reconnectAttempts = 0;
   int _maxReconnectAttempts = 5;
   int _reconnectDelay = 2000; // 2 segundos
@@ -25,7 +25,12 @@ class WebSocketService {
   String get serverUrl => _serverUrl;
 
   void setServerUrl(String url) {
+    // Valida se a URL tem o formato correto
+    if (!url.startsWith('ws://') && !url.startsWith('wss://')) {
+      url = 'ws://$url';
+    }
     _serverUrl = url;
+    print('WebSocket: URL do servidor definida como: $_serverUrl');
   }
 
   Future<void> connect() async {
