@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter/foundation.dart';
-import '../../services/websocket_service.dart';
+import '../../services/robust_websocket_service.dart';
 // import 'package:flutter/services.dart';
 
 class IpdHomeController {
@@ -25,12 +25,12 @@ class IpdHomeController {
   }
 
   // WebSocket service
-  final WebSocketService _webSocketService = WebSocketService();
+  final RobustWebSocketService _webSocketService = RobustWebSocketService();
   bool _useWebSocket = true; // Flag para escolher entre RS485 e WebSocket
 
   bool get useWebSocket => _useWebSocket;
   bool get isWebSocketConnected => _webSocketService.isConnected;
-  WebSocketService get webSocketService => _webSocketService;
+  RobustWebSocketService get webSocketService => _webSocketService;
 
   void setUseWebSocket(bool use) {
     _useWebSocket = use;
@@ -44,7 +44,7 @@ class IpdHomeController {
   }
 
   void _initWebSocket() {
-    print('IPD Controller: 🔧 Inicializando WebSocket...');
+    print('IPD Controller: 🔧 Inicializando WebSocket robusto...');
 
     _webSocketService.onDataReceived = (data) {
       print('IPD Controller: 📨 Dados recebidos via WebSocket');
@@ -121,39 +121,8 @@ class IpdHomeController {
       return;
     }
 
-    // Se temos dados mas o andar atual não existe, usamos o primeiro disponível
-    if (andares.isNotEmpty) {
-      bool andarEncontrado = false;
-
-      // Verifica se o andar atual existe na configuração
-      for (final entry in andares.entries) {
-        final andarInfo = entry.value;
-        if (andarInfo is Map<String, dynamic> &&
-            andarInfo['andar'] != null &&
-            andarInfo['andar'].toString() == andarAtual.toString()) {
-          andarEncontrado = true;
-          break;
-        }
-      }
-
-      // Se não encontrou, usa o primeiro andar disponível
-      if (!andarEncontrado) {
-        final primeiroAndar = andares.values.first;
-        if (primeiroAndar is Map<String, dynamic> &&
-            primeiroAndar.containsKey('andar')) {
-          final novoAndar = int.tryParse(primeiroAndar['andar'].toString());
-          if (novoAndar != null) {
-            andarAtual = novoAndar;
-            print(
-                'IPD Controller: ⚠️ Andar atual não encontrado, usando primeiro disponível: $andarAtual');
-          }
-        }
-      }
-    }
-
     print('IPD Controller: 🏢 Andar atual: $andarAtual');
-    print(
-        'IPD Controller: 🏢 Andares disponíveis: ${andares.values.map((a) => a is Map ? a['andar'] : '?').toList()}');
+    print('IPD Controller: 🏢 Andares configurados: ${andares.keys.toList()}');
   }
 
   Future<void> sendMessageToNative(Map<String, dynamic> mensagem) async {
@@ -275,25 +244,14 @@ class IpdHomeController {
         if (dados.containsKey("andares")) {
           final novosAndares = dados["andares"];
           if (novosAndares is Map<String, dynamic> && novosAndares.isNotEmpty) {
-            andares = Map<String, dynamic>.from(novosAndares);
-            print(
-                'IPD Controller: 🏢 Configuração de andares atualizada: $andares');
-
-            // Se é a primeira vez que recebemos dados dos andares,
-            // e o andar atual não existe, usamos o primeiro disponível
-            if (!andares.containsKey(andarAtual.toString())) {
-              // Procura o primeiro andar disponível na configuração
-              final primeiroAndar = andares.values.first;
-              if (primeiroAndar is Map<String, dynamic> &&
-                  primeiroAndar.containsKey('andar')) {
-                final novoAndar =
-                    int.tryParse(primeiroAndar['andar'].toString());
-                if (novoAndar != null) {
-                  andarAtual = novoAndar;
-                  print(
-                      'IPD Controller: 🏢 Primeira configuração de andares - definindo andar atual para: $andarAtual');
-                }
-              }
+            // Só atualiza se ainda não temos dados dos andares (configuração inicial)
+            if (andares.isEmpty) {
+              andares = Map<String, dynamic>.from(novosAndares);
+              print(
+                  'IPD Controller: 🏢 Configuração inicial de andares recebida: $andares');
+            } else {
+              print(
+                  'IPD Controller: 🏢 Dados de andares ignorados (já configurado)');
             }
           }
         }
