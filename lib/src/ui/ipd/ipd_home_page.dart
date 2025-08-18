@@ -1,5 +1,7 @@
 import 'package:altitude_ipd_app/src/services/telegram_service.dart';
+import 'package:altitude_ipd_app/src/ui/_core/enumerators.dart';
 import 'package:altitude_ipd_app/src/ui/_core/image_path_constants.dart';
+import 'package:altitude_ipd_app/src/ui/call_page/call_page.dart';
 import 'package:altitude_ipd_app/src/ui/call_page/select_call_type_page.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/ipd_home_controller.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/andar_indicator_card.dart';
@@ -8,12 +10,9 @@ import 'package:altitude_ipd_app/src/ui/ipd/widgets/custom_button.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/image_carousel_widget.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/looping_video_player.dart';
 import 'package:altitude_ipd_app/src/ui/ipd/widgets/number_buttons_widget.dart';
-import 'package:altitude_ipd_app/src/ui/ipd/widgets/communication_settings_widget.dart';
-import 'package:altitude_ipd_app/src/ui/call_page/call_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:altitude_ipd_app/src/ui/_core/enumerators.dart';
 
 class IpdHomePage extends StatefulWidget {
   const IpdHomePage({super.key});
@@ -79,10 +78,8 @@ class _IpdHomePageState extends State<IpdHomePage> with WidgetsBindingObserver {
             Row(
               children: [
                 AndarIndicatorCard(
-                  andarAtual: controller
-                      .andares[controller.andarAtual.toString()]?['andar'],
-                  description: controller
-                      .andares[controller.andarAtual.toString()]?['descricao'],
+                  andarAtual: controller.andarAtual,
+                  andares: controller.andares,
                 ),
                 SizedBox(
                   width: 32.0 * widthRatio,
@@ -96,6 +93,7 @@ class _IpdHomePageState extends State<IpdHomePage> with WidgetsBindingObserver {
                 ),
               ],
             ),
+            SizedBox(height: 20 * heightRatio),
             SizedBox(
               height: 50.0 * heightRatio,
             ),

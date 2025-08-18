@@ -80,9 +80,8 @@ class IpdHomeController {
   List<String>? mensagens;
   String? nomeObra;
   String? codigoObra;
-  Map<String, dynamic> andares = {
-    "1": {"andar": "0", "descricao": "Andar inicial"},
-  };
+  Map<String, dynamic> andares =
+      {}; // Inicializa vazio - será preenchido pelo Python
   String? dataUltimaManutencao;
 
   Function()? onUpdate;
@@ -100,6 +99,38 @@ class IpdHomeController {
     nomeObra = "Projeto Demo";
     codigoObra = "DEMO001";
     dataUltimaManutencao = "2024-01-01";
+
+    // NOTA: Não preenchemos dados dos andares aqui
+    // Eles virão do servidor Python via WebSocket
+    print(
+        'IPD Controller: ⏳ Aguardando dados dos andares do servidor Python...');
+  }
+
+  void _ensureValidAndares() {
+    // Garante que o andar atual seja válido apenas para evitar crashes
+    if (andarAtual < 0) {
+      andarAtual = 1; // Fallback mínimo para evitar valores negativos
+      print(
+          'IPD Controller: ⚠️ Andar atual negativo, definindo para: $andarAtual');
+    }
+
+    // Se não temos dados dos andares ainda, aguardamos do Python
+    if (andares.isEmpty) {
+      print(
+          'IPD Controller: ⏳ Aguardando dados dos andares do servidor Python...');
+      return;
+    }
+
+    // Se temos dados mas o andar atual não existe, usamos o primeiro disponível
+    if (!andares.containsKey(andarAtual.toString()) && andares.isNotEmpty) {
+      final primeiroAndar = andares.keys.first;
+      andarAtual = int.tryParse(primeiroAndar) ?? 1;
+      print(
+          'IPD Controller: ⚠️ Andar atual não encontrado, usando primeiro disponível: $andarAtual');
+    }
+
+    print('IPD Controller: 🏢 Andar atual: $andarAtual');
+    print('IPD Controller: 🏢 Andares disponíveis: ${andares.keys.toList()}');
   }
 
   Future<void> sendMessageToNative(Map<String, dynamic> mensagem) async {
@@ -187,8 +218,15 @@ class IpdHomeController {
       final Map<String, dynamic>? dados = decodedMessage["dados"];
 
       if (tipo == "status" && dados != null) {
-        if (dados.containsKey("andar_atual"))
-          andarAtual = dados["andar_atual"] ?? 0;
+        if (dados.containsKey("andar_atual")) {
+          final novoAndar = dados["andar_atual"];
+          if (novoAndar != null) {
+            andarAtual = novoAndar is int
+                ? novoAndar
+                : int.tryParse(novoAndar.toString()) ?? andarAtual;
+            print('IPD Controller: 🏢 Andar atualizado para: $andarAtual');
+          }
+        }
         if (dados.containsKey("temperatura")) {
           temperatura = (dados["temperatura"] as num).toDouble();
         }
@@ -212,7 +250,24 @@ class IpdHomeController {
         }
 
         if (dados.containsKey("andares")) {
-          andares = dados["andares"];
+          final novosAndares = dados["andares"];
+          if (novosAndares is Map<String, dynamic> && novosAndares.isNotEmpty) {
+            andares = Map<String, dynamic>.from(novosAndares);
+            print(
+                'IPD Controller: 🏢 Configuração de andares atualizada: $andares');
+
+            // Se é a primeira vez que recebemos dados dos andares,
+            // e o andar atual não existe, usamos o primeiro disponível
+            if (!andares.containsKey(andarAtual.toString())) {
+              final primeiroAndar = andares.keys.first;
+              final novoAndar = int.tryParse(primeiroAndar);
+              if (novoAndar != null) {
+                andarAtual = novoAndar;
+                print(
+                    'IPD Controller: 🏢 Primeira configuração de andares - definindo andar atual para: $andarAtual');
+              }
+            }
+          }
         }
 
         if (dados.containsKey("latitude")) {
@@ -228,6 +283,9 @@ class IpdHomeController {
         if (dados.containsKey("data_ultima_manutencao")) {
           dataUltimaManutencao = dados["data_ultima_manutencao"];
         }
+
+        // Garantir que os dados dos andares sejam sempre válidos
+        _ensureValidAndares();
 
         onUpdate?.call();
       }
