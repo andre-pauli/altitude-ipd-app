@@ -12,54 +12,11 @@ class AndarIndicatorCard extends StatelessWidget {
   });
 
   String get _andarDisplay {
-    // Se não temos dados dos andares ainda, mostra "Carregando..."
-    if (andares.isEmpty) {
-      return "...";
-    }
-
-    // Busca o andar no mapa de andares
-    // Estrutura do Python: {1: {"andar": "0", "descricao": "Térreo"}, 2: {"andar": "1", "descricao": "1º Andar"}}
-    // Precisamos encontrar o índice que contém o andar atual
-    for (final entry in andares.entries) {
-      final andarInfo = entry.value;
-      if (andarInfo is Map<String, dynamic> &&
-          andarInfo['andar'] != null &&
-          andarInfo['andar'].toString() == andarAtual.toString()) {
-        return andarInfo['andar'].toString();
-      }
-    }
-
-    // Fallback: se não encontrar, usa o andar atual diretamente
-    return andarAtual.toString();
+    return andares[andarAtual.toString()]['andar'].toString();
   }
 
   String get _description {
-    // Se não temos dados dos andares ainda, mostra "Carregando..."
-    if (andares.isEmpty) {
-      return "Carregando...";
-    }
-
-    // Busca a descrição no mapa de andares
-    // Estrutura do Python: {1: {"andar": "0", "descricao": "Térreo"}, 2: {"andar": "1", "descricao": "1º Andar"}}
-    // Precisamos encontrar o índice que contém o andar atual
-    for (final entry in andares.entries) {
-      final andarInfo = entry.value;
-      if (andarInfo is Map<String, dynamic> &&
-          andarInfo['andar'] != null &&
-          andarInfo['andar'].toString() == andarAtual.toString()) {
-        return andarInfo['descricao']?.toString() ?? "Andar $andarAtual";
-      }
-    }
-
-    // Fallback: descrição padrão baseada no andar
-    if (andarAtual == 0) return "Térreo";
-    if (andarAtual == 1) return "1º Andar";
-    if (andarAtual == 2) return "2º Andar";
-    if (andarAtual == 3) return "3º Andar";
-    if (andarAtual == 4) return "4º Andar";
-    if (andarAtual == 5) return "5º Andar";
-
-    return "Andar $andarAtual";
+    return andares[andarAtual.toString()]['descricao'].toString();
   }
 
   @override
