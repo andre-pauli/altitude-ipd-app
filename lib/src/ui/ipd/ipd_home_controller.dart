@@ -11,22 +11,14 @@ class IpdHomeController {
 
   IpdHomeController._internal() {
     _initWebSocket();
-    // startListeningToMessages();
-    // Simular dados para Linux
-    _simulateData();
-
-    // Conecta automaticamente ao WebSocket após um pequeno delay
-    Future.delayed(Duration(seconds: 2), () {
-      if (_useWebSocket) {
-        print('IPD Controller: 🔄 Conectando automaticamente ao WebSocket...');
-        _webSocketService.connect();
-      }
-    });
+    if (_useWebSocket) {
+      print('IPD Controller: 🔄 Conectando automaticamente ao WebSocket...');
+      _webSocketService.connect();
+    }
   }
 
-  // WebSocket service
   final RobustWebSocketService _webSocketService = RobustWebSocketService();
-  bool _useWebSocket = true; // Flag para escolher entre RS485 e WebSocket
+  bool _useWebSocket = true;
 
   bool get useWebSocket => _useWebSocket;
   bool get isWebSocketConnected => _webSocketService.isConnected;
@@ -80,50 +72,11 @@ class IpdHomeController {
   List<String>? mensagens;
   String? nomeObra;
   String? codigoObra;
-  Map<String, dynamic> andares =
-      {}; // Inicializa vazio - será preenchido pelo Python
+  Map<String, dynamic> andares = {};
   String? dataUltimaManutencao;
 
   Function()? onUpdate;
   Function()? onUpdateWeater;
-
-  void _simulateData() {
-    // Simular dados para demonstração no Linux
-    temperatura = 25.0;
-    capacidadeMaximaKg = 1000;
-    capacidadePessoas = 8;
-    latitude = -23.5505;
-    longitude = -46.6333;
-    direcaoMovimentacao = "Parado";
-    mensagens = ["Sistema iniciado", "Linux mode ativo"];
-    nomeObra = "Projeto Demo";
-    codigoObra = "DEMO001";
-    dataUltimaManutencao = "2024-01-01";
-
-    // NOTA: Não preenchemos dados dos andares aqui
-    // Eles virão do servidor Python via WebSocket
-    print(
-        'IPD Controller: ⏳ Aguardando dados dos andares do servidor Python...');
-  }
-
-  void _ensureValidAndares() {
-    // Garante que o andar atual seja válido apenas para evitar crashes
-    if (andarAtual < 0) {
-      andarAtual = 1; // Fallback mínimo para evitar valores negativos
-      print(
-          'IPD Controller: ⚠️ Andar atual negativo, definindo para: $andarAtual');
-    }
-
-    // Se não temos dados dos andares ainda, aguardamos do Python
-    if (andares.isEmpty) {
-      print(
-          'IPD Controller: ⏳ Aguardando dados dos andares do servidor Python...');
-      return;
-    }
-
-    print('IPD Controller: 🏢 Andar atual: $andarAtual');
-    print('IPD Controller: 🏢 Andares configurados: ${andares.keys.toList()}');
-  }
 
   Future<void> sendMessageToNative(Map<String, dynamic> mensagem) async {
     try {
@@ -211,13 +164,7 @@ class IpdHomeController {
 
       if (tipo == "status" && dados != null) {
         if (dados.containsKey("andar_atual")) {
-          final novoAndar = dados["andar_atual"];
-          if (novoAndar != null) {
-            andarAtual = novoAndar is int
-                ? novoAndar
-                : int.tryParse(novoAndar.toString()) ?? andarAtual;
-            print('IPD Controller: 🏢 Andar atualizado para: $andarAtual');
-          }
+          andarAtual = dados["andar_atual"];
         }
         if (dados.containsKey("temperatura")) {
           temperatura = (dados["temperatura"] as num).toDouble();
@@ -242,17 +189,8 @@ class IpdHomeController {
         }
 
         if (dados.containsKey("andares")) {
-          final novosAndares = dados["andares"];
-          if (novosAndares is Map<String, dynamic> && novosAndares.isNotEmpty) {
-            // Só atualiza se ainda não temos dados dos andares (configuração inicial)
-            if (andares.isEmpty) {
-              andares = Map<String, dynamic>.from(novosAndares);
-              print(
-                  'IPD Controller: 🏢 Configuração inicial de andares recebida: $andares');
-            } else {
-              print(
-                  'IPD Controller: 🏢 Dados de andares ignorados (já configurado)');
-            }
+          if (andares.isEmpty) {
+            andares = dados["andares"];
           }
         }
 
@@ -269,9 +207,6 @@ class IpdHomeController {
         if (dados.containsKey("data_ultima_manutencao")) {
           dataUltimaManutencao = dados["data_ultima_manutencao"];
         }
-
-        // Garantir que os dados dos andares sejam sempre válidos
-        _ensureValidAndares();
 
         onUpdate?.call();
       }
