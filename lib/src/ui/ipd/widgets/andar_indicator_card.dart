@@ -18,9 +18,15 @@ class AndarIndicatorCard extends StatelessWidget {
     }
 
     // Busca o andar no mapa de andares
-    final andarInfo = andares[andarAtual.toString()];
-    if (andarInfo != null && andarInfo['andar'] != null) {
-      return andarInfo['andar'].toString();
+    // Estrutura do Python: {1: {"andar": "0", "descricao": "Térreo"}, 2: {"andar": "1", "descricao": "1º Andar"}}
+    // Precisamos encontrar o índice que contém o andar atual
+    for (final entry in andares.entries) {
+      final andarInfo = entry.value;
+      if (andarInfo is Map<String, dynamic> &&
+          andarInfo['andar'] != null &&
+          andarInfo['andar'].toString() == andarAtual.toString()) {
+        return andarInfo['andar'].toString();
+      }
     }
 
     // Fallback: se não encontrar, usa o andar atual diretamente
@@ -34,9 +40,15 @@ class AndarIndicatorCard extends StatelessWidget {
     }
 
     // Busca a descrição no mapa de andares
-    final andarInfo = andares[andarAtual.toString()];
-    if (andarInfo != null && andarInfo['descricao'] != null) {
-      return andarInfo['descricao'].toString();
+    // Estrutura do Python: {1: {"andar": "0", "descricao": "Térreo"}, 2: {"andar": "1", "descricao": "1º Andar"}}
+    // Precisamos encontrar o índice que contém o andar atual
+    for (final entry in andares.entries) {
+      final andarInfo = entry.value;
+      if (andarInfo is Map<String, dynamic> &&
+          andarInfo['andar'] != null &&
+          andarInfo['andar'].toString() == andarAtual.toString()) {
+        return andarInfo['descricao']?.toString() ?? "Andar $andarAtual";
+      }
     }
 
     // Fallback: descrição padrão baseada no andar

@@ -122,15 +122,38 @@ class IpdHomeController {
     }
 
     // Se temos dados mas o andar atual não existe, usamos o primeiro disponível
-    if (!andares.containsKey(andarAtual.toString()) && andares.isNotEmpty) {
-      final primeiroAndar = andares.keys.first;
-      andarAtual = int.tryParse(primeiroAndar) ?? 1;
-      print(
-          'IPD Controller: ⚠️ Andar atual não encontrado, usando primeiro disponível: $andarAtual');
+    if (andares.isNotEmpty) {
+      bool andarEncontrado = false;
+
+      // Verifica se o andar atual existe na configuração
+      for (final entry in andares.entries) {
+        final andarInfo = entry.value;
+        if (andarInfo is Map<String, dynamic> &&
+            andarInfo['andar'] != null &&
+            andarInfo['andar'].toString() == andarAtual.toString()) {
+          andarEncontrado = true;
+          break;
+        }
+      }
+
+      // Se não encontrou, usa o primeiro andar disponível
+      if (!andarEncontrado) {
+        final primeiroAndar = andares.values.first;
+        if (primeiroAndar is Map<String, dynamic> &&
+            primeiroAndar.containsKey('andar')) {
+          final novoAndar = int.tryParse(primeiroAndar['andar'].toString());
+          if (novoAndar != null) {
+            andarAtual = novoAndar;
+            print(
+                'IPD Controller: ⚠️ Andar atual não encontrado, usando primeiro disponível: $andarAtual');
+          }
+        }
+      }
     }
 
     print('IPD Controller: 🏢 Andar atual: $andarAtual');
-    print('IPD Controller: 🏢 Andares disponíveis: ${andares.keys.toList()}');
+    print(
+        'IPD Controller: 🏢 Andares disponíveis: ${andares.values.map((a) => a is Map ? a['andar'] : '?').toList()}');
   }
 
   Future<void> sendMessageToNative(Map<String, dynamic> mensagem) async {
@@ -259,12 +282,17 @@ class IpdHomeController {
             // Se é a primeira vez que recebemos dados dos andares,
             // e o andar atual não existe, usamos o primeiro disponível
             if (!andares.containsKey(andarAtual.toString())) {
-              final primeiroAndar = andares.keys.first;
-              final novoAndar = int.tryParse(primeiroAndar);
-              if (novoAndar != null) {
-                andarAtual = novoAndar;
-                print(
-                    'IPD Controller: 🏢 Primeira configuração de andares - definindo andar atual para: $andarAtual');
+              // Procura o primeiro andar disponível na configuração
+              final primeiroAndar = andares.values.first;
+              if (primeiroAndar is Map<String, dynamic> &&
+                  primeiroAndar.containsKey('andar')) {
+                final novoAndar =
+                    int.tryParse(primeiroAndar['andar'].toString());
+                if (novoAndar != null) {
+                  andarAtual = novoAndar;
+                  print(
+                      'IPD Controller: 🏢 Primeira configuração de andares - definindo andar atual para: $andarAtual');
+                }
               }
             }
           }
