@@ -23,7 +23,7 @@ class _RobustWebSocketWidgetState extends State<RobustWebSocketWidget> {
 
   void _setupWebSocket() {
     WebSocketConfig.setupAndConnect(
-      serverUrl: 'ws://10.0.0.233:8765', // Ajuste para o IP do seu Raspberry Pi
+      serverUrl: 'ws://quadro-elevador:8765', // Host específico do elevador
       onDataReceived: _onDataReceived,
       onConnected: _onConnected,
       onDisconnected: _onDisconnected,
