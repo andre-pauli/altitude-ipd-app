@@ -20,8 +20,8 @@ dependencies:
   permission_handler: ^11.3.1
   sdp_transform: ^0.3.2
   socket_io_client: ^3.0.2
-  web_socket_channel: ^2.4.0
-  flutter_webrtc: ^0.9.36
+  web_socket_channel: ^3.0.3
+  flutter_webrtc: ^1.1.0
   package_info_plus: ^8.1.1
   video_player: ^2.9.2
   carousel_slider: ^5.0.0

@@ -120,58 +120,58 @@ class _IpdHomePageState extends State<IpdHomePage> with WidgetsBindingObserver {
                   iconPath: ImagePathConstants.iconEmergency,
                   backgroundColor: Colors.red,
                   onPressed: () async {
-                    // showDialog(
-                    //   context: context,
-                    //   builder: (BuildContext context) {
-                    //     return AlertDialog(
-                    //       title: Text('Confirmar SOS'),
-                    //       content: Text(
-                    //           'Deseja realmente entrar em contato com o suporte?'),
-                    //       actions: [
-                    //         TextButton(
-                    //           onPressed: () {
-                    //             Navigator.of(context).pop();
-                    //           },
-                    //           child: Text('Não'),
-                    //         ),
-                    //         TextButton(
-                    //           onPressed: () {
-                    //             Navigator.of(context).pop();
-                    //             _sendMessageTelegram();
-                    //             showDialog(
-                    //               context: context,
-                    //               builder: (BuildContext context) {
-                    //                 return AlertDialog(
-                    //                   title: Text('Suporte Contatado'),
-                    //                   content: Text(
-                    //                       'O suporte foi notificado e logo fará o contato.'),
-                    //                   actions: [
-                    //                     TextButton(
-                    //                       onPressed: () {
-                    //                         Navigator.of(context).pop();
-                    //                       },
-                    //                       child: Text('OK'),
-                    //                     ),
-                    //                   ],
-                    //                 );
-                    //               },
-                    //             );
-                    //           },
-                    //           child: Text('Sim'),
-                    //         ),
-                    //       ],
-                    //     );
-                    //   },
-                    // );
-
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => SelectCallTypePage(
-                          roomId: controller.nomeObra ?? '-',
-                          mensagens: controller.mensagens ?? [],
-                        ),
-                      ),
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('Confirmar SOS'),
+                          content: Text(
+                              'Deseja realmente entrar em contato com o suporte?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text('Não'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                _sendMessageTelegram();
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text('Suporte Contatado'),
+                                      content: Text(
+                                          'O suporte foi notificado e logo fará o contato.'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text('OK'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                              child: Text('Sim'),
+                            ),
+                          ],
+                        );
+                      },
                     );
+
+                    // Navigator.of(context).push(
+                    //   MaterialPageRoute(
+                    //     builder: (context) => SelectCallTypePage(
+                    //       roomId: controller.nomeObra ?? '-',
+                    //       mensagens: controller.mensagens ?? [],
+                    //     ),
+                    //   ),
+                    // );
                   },
                   width: 280 * widthRatio,
                   height: 108 * heightRatio,
