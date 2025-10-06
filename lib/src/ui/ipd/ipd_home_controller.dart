@@ -144,6 +144,32 @@ class IpdHomeController {
     }
   }
 
+  Future<bool> waitForWebSocketConnection({int maxWaitSeconds = 10}) async {
+    if (!_useWebSocket) return false;
+    
+    final maxWaitMs = maxWaitSeconds * 1000;
+    final checkInterval = 500; // 500ms
+    int waited = 0;
+    
+    while (waited < maxWaitMs) {
+      if (_webSocketService.isConnected) {
+        final stats = _webSocketService.getConnectionStats();
+        final isHealthy = stats['isConnectionHealthy'] as bool;
+        
+        if (isHealthy) {
+          print('✅ WebSocket está conectado e saudável');
+          return true;
+        }
+      }
+      
+      await Future.delayed(Duration(milliseconds: checkInterval));
+      waited += checkInterval;
+    }
+    
+    print('⚠️ Timeout aguardando conexão WebSocket');
+    return false;
+  }
+
   // void startListeningToMessages() {
   //   eventChannel.receiveBroadcastStream().listen((message) {
   //     final txt = message as String;
