@@ -12,10 +12,16 @@ class AndarIndicatorCard extends StatelessWidget {
   });
 
   String get _andarDisplay {
+    if(andares.isEmpty) {
+      return '0';
+    }
     return andares[andarAtual.toString()]['andar'].toString();
   }
 
   String get _description {
+    if(andares.isEmpty) {
+      return 'Sem dados';
+    }
     return andares[andarAtual.toString()]['descricao'].toString();
   }
 

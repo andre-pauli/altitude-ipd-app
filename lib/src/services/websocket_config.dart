@@ -8,7 +8,7 @@ class WebSocketConfig {
   static RobustWebSocketService get service => _websocketService;
 
   // Configurações padrão
-  static const String defaultServerUrl = 'ws://quadro-elevador:8765';
+  static const String defaultServerUrl = 'ws://10.0.0.219:8765';
   static const int defaultPort = 8765;
 
   // Método para configurar e conectar automaticamente

@@ -23,7 +23,7 @@ class _RobustWebSocketWidgetState extends State<RobustWebSocketWidget> {
 
   void _setupWebSocket() {
     WebSocketConfig.setupAndConnect(
-      serverUrl: 'ws://quadro-elevador:8765', // Host específico do elevador
+      serverUrl: 'ws://10.0.0.219:8765', // Host específico do elevador
       onDataReceived: _onDataReceived,
       onConnected: _onConnected,
       onDisconnected: _onDisconnected,

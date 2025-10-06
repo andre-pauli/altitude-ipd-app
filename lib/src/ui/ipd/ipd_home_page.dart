@@ -321,16 +321,16 @@ class _IpdHomePageState extends State<IpdHomePage> with WidgetsBindingObserver {
   }
 
   void _startCall(CallPageType callType) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => CallPage(
-          callPageType: callType,
-          roomId: controller.nomeObra ??
-              'Elevador-${DateTime.now().millisecondsSinceEpoch}',
-          mensagens: controller.mensagens ?? [],
-        ),
-      ),
-    );
+    // Navigator.of(context).push(
+      // MaterialPageRoute(
+      //   builder: (context) => CallPage(
+      //     callPageType: callType,
+      //     roomId: controller.nomeObra ??
+      //         'Elevador-${DateTime.now().millisecondsSinceEpoch}',
+      //     mensagens: controller.mensagens ?? [],
+      //   ),
+      // ),
+    // );
   }
 
   Widget _showPublicityCard(double widthRatio, double heightRatio) {

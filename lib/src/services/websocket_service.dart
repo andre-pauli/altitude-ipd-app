@@ -10,7 +10,7 @@ class WebSocketService {
 
   WebSocketChannel? _channel;
   bool _isConnected = false;
-  String _serverUrl = 'ws://quadro-elevador:8765'; // Host específico do elevador
+  String _serverUrl = 'ws://10.0.0.219:8765'; // Host específico do elevador
   int _reconnectAttempts = 0;
   int _maxReconnectAttempts = 5;
   int _reconnectDelay = 2000; // 2 segundos
