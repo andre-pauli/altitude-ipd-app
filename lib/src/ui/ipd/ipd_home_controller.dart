@@ -111,9 +111,6 @@ class IpdHomeController {
       };
       await sendMessageToNative(mensagem);
     }
-
-    // Simular mudança de andar no Linux
-    andarAtual = andarDestino;
     onUpdate?.call();
   }
 
