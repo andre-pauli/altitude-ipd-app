@@ -192,9 +192,6 @@ class IpdHomeController {
         if (dados.containsKey("andar_atual")) {
           andarAtual = dados["andar_atual"];
         }
-        if (dados.containsKey("temperatura")) {
-          temperatura = (dados["temperatura"] as num).toDouble();
-        }
         if (dados.containsKey("capacidade_maxima_kg")) {
           capacidadeMaximaKg = dados["capacidade_maxima_kg"];
         }
