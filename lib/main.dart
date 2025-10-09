@@ -1,4 +1,4 @@
-import 'package:altitude_ipd_app/src/ui/ipd/ipd_home_page.dart';
+import 'package:altitude_ipd_app/src/presentation/ipd/ipd_home_page.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';

@@ -1,6 +1,4 @@
-import 'package:altitude_ipd_app/src/ui/_core/enumerators.dart';
-import 'package:altitude_ipd_app/src/ui/ipd/widgets/custom_button.dart';
-import 'package:altitude_ipd_app/src/ui/call_page/call_page.dart';
+import 'package:altitude_ipd_app/src/presentation/ipd/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 
 class SelectCallTypePage extends StatelessWidget {

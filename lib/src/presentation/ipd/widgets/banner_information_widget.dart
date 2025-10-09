@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:altitude_ipd_app/src/services/weather_service.dart';
-import 'package:altitude_ipd_app/src/ui/_core/image_path_constants.dart';
-import 'package:altitude_ipd_app/src/ui/ipd/ipd_home_controller.dart';
+import 'package:altitude_ipd_app/src/presentation/core/image_path_constants.dart';
+import 'package:altitude_ipd_app/src/presentation/ipd/ipd_home_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -51,11 +51,10 @@ class _BannerInformationWidgetState extends State<BannerInformationWidget> {
   void dispose() {
     _timer?.cancel();
     super.dispose();
-    controller.onUpdateWeater = (){
+    controller.onUpdateWeater = () {
       //fetchWeatherData();
       log('lat lon recebidos!');
-      setState(() {
-      });
+      setState(() {});
     };
   }
 

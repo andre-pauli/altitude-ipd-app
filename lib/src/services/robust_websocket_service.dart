@@ -12,22 +12,19 @@ class RobustWebSocketService {
 
   WebSocketChannel? _channel;
   bool _isConnected = false;
-  String _serverUrl = 'ws://10.0.0.219:8765'; // Host específico do elevador
+  String _serverUrl = 'ws://10.0.0.219:8765';
   int _reconnectAttempts = 0;
-  int _maxReconnectAttempts = 10; // Aumentado para ser mais persistente
-  int _reconnectDelay = 2000; // 2 segundos
+  int _maxReconnectAttempts = 10;
+  int _reconnectDelay = 2000;
   Timer? _heartbeatTimer;
   Timer? _reconnectTimer;
   bool _shouldReconnect = true;
   DateTime? _lastHeartbeat;
   DateTime? _lastMessageReceived;
 
-  // Configurações de heartbeat
-  static const int _heartbeatInterval =
-      25; // 25 segundos (menor que o servidor)
-  static const int _heartbeatTimeout = 35; // 35 segundos para detectar timeout
+  static const int _heartbeatInterval = 25;
+  static const int _heartbeatTimeout = 35;
 
-  // Callbacks
   Function(Map<String, dynamic>)? onDataReceived;
   Function()? onConnected;
   Function()? onDisconnected;
@@ -40,7 +37,6 @@ class RobustWebSocketService {
   DateTime? get lastMessageReceived => _lastMessageReceived;
 
   void setServerUrl(String url) {
-    // Valida se a URL tem o formato correto
     if (!url.startsWith('ws://') && !url.startsWith('wss://')) {
       url = 'ws://$url';
     }
@@ -80,10 +76,8 @@ class RobustWebSocketService {
       _updateStatus('🎉 Conectado com sucesso ao servidor');
       onConnected?.call();
 
-      // Inicia heartbeat
       _startHeartbeat();
 
-      // Escuta mensagens
       _channel!.stream.listen(
         (data) {
           _log('📨 Dados recebidos do servidor');
@@ -190,14 +184,11 @@ class RobustWebSocketService {
       final tipo = jsonData['tipo'];
 
       if (tipo == 'heartbeat') {
-        // Responde ao heartbeat do servidor
         _sendHeartbeatResponse(jsonData);
       } else if (tipo == 'heartbeat_response') {
-        // Confirmação de heartbeat
         _lastHeartbeat = DateTime.now();
         _log('💓 Heartbeat confirmado pelo servidor');
       } else {
-        // Processa mensagem normal
         onDataReceived?.call(jsonData);
       }
     } catch (e) {
@@ -298,7 +289,6 @@ class RobustWebSocketService {
     disconnect();
   }
 
-  // Método para verificar se a conexão está saudável
   bool isConnectionHealthy() {
     if (!_isConnected) return false;
 
@@ -311,7 +301,6 @@ class RobustWebSocketService {
     return heartbeatAge < _heartbeatTimeout && messageAge < _heartbeatTimeout;
   }
 
-  // Método para forçar reconexão
   Future<void> forceReconnect() async {
     _log('🔄 Forçando reconexão...');
     disconnect();
@@ -321,7 +310,6 @@ class RobustWebSocketService {
     await connect();
   }
 
-  // Método para obter estatísticas da conexão
   Map<String, dynamic> getConnectionStats() {
     return {
       'isConnected': _isConnected,
