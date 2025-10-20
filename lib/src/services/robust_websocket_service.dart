@@ -14,16 +14,16 @@ class RobustWebSocketService {
   bool _isConnected = false;
   String _serverUrl = 'ws://10.0.0.219:8765';
   int _reconnectAttempts = 0;
-  int _maxReconnectAttempts = 10;
-  int _reconnectDelay = 2000;
+  int _maxReconnectAttempts = 999999; // efetivamente infinito
+  int _reconnectDelay = 2000; // base em ms
   Timer? _heartbeatTimer;
   Timer? _reconnectTimer;
   bool _shouldReconnect = true;
   DateTime? _lastHeartbeat;
   DateTime? _lastMessageReceived;
 
-  static const int _heartbeatInterval = 25;
-  static const int _heartbeatTimeout = 35;
+  static const int _heartbeatInterval = 20;
+  static const int _heartbeatTimeout = 45;
 
   Function(Map<String, dynamic>)? onDataReceived;
   Function()? onConnected;
@@ -66,7 +66,10 @@ class RobustWebSocketService {
       final uri = Uri.parse(_serverUrl);
       _log('URI parseada: $uri');
 
-      final socket = await WebSocket.connect(uri.toString());
+      final socket = await WebSocket.connect(
+        uri.toString(),
+        compression: CompressionOptions.compressionOff,
+      );
       _log('Socket criado com sucesso');
 
       _channel = IOWebSocketChannel(socket);
@@ -115,7 +118,9 @@ class RobustWebSocketService {
   void _scheduleReconnect() {
     if (_reconnectAttempts < _maxReconnectAttempts && _shouldReconnect) {
       _reconnectAttempts++;
-      final delay = _reconnectDelay * _reconnectAttempts; // Backoff exponencial
+      int delay = _reconnectDelay * _reconnectAttempts; // Backoff exponencial
+      if (delay > 30000) delay = 30000; // máximo 30s
+      delay += (1000 * (DateTime.now().millisecondsSinceEpoch % 3));
 
       _updateStatus(
           '🔄 Tentativa de reconexão $_reconnectAttempts/$_maxReconnectAttempts em ${delay}ms');
