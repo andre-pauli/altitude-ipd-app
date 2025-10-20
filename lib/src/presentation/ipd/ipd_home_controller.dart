@@ -13,6 +13,8 @@ class IpdHomeController {
     _initWebSocket();
     if (_useWebSocket) {
       print('IPD Controller: 🔄 Conectando automaticamente ao WebSocket...');
+      _webSocketService.setHost('quadro-elevador',
+          port: 8765, tryLocalSuffix: true);
       _webSocketService.connect();
     }
   }

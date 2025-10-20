@@ -12,7 +12,11 @@ class RobustWebSocketService {
 
   WebSocketChannel? _channel;
   bool _isConnected = false;
-  String _serverUrl = 'ws://10.0.0.219:8765';
+  String _serverUrl = 'ws://quadro-elevador:8765';
+  List<String> _candidateUrls = [
+    'ws://quadro-elevador:8765',
+    'ws://quadro-elevador.local:8765'
+  ];
   int _reconnectAttempts = 0;
   int _maxReconnectAttempts = 999999; // efetivamente infinito
   int _reconnectDelay = 2000; // base em ms
@@ -42,6 +46,32 @@ class RobustWebSocketService {
     }
     _serverUrl = url;
     _log('URL do servidor definida como: $_serverUrl');
+    // atualiza candidatos com base na URL
+    try {
+      final uri = Uri.parse(url);
+      final host = uri.host;
+      final scheme = uri.scheme;
+      final port = uri.hasPort ? uri.port : 8765;
+      final withLocal = host.endsWith('.local') ? host : '$host.local';
+      _candidateUrls = [
+        '$scheme://$host:$port',
+        '$scheme://$withLocal:$port',
+      ];
+    } catch (_) {
+      // mantém a lista atual se parsing falhar
+    }
+  }
+
+  void setHost(String host,
+      {int port = 8765, bool tryLocalSuffix = true, bool secure = false}) {
+    final scheme = secure ? 'wss' : 'ws';
+    _serverUrl = '$scheme://$host:$port';
+    _candidateUrls = [
+      '$scheme://$host:$port',
+      if (tryLocalSuffix && !host.endsWith('.local'))
+        '$scheme://$host.local:$port',
+    ];
+    _log('Host configurado: candidatos=$_candidateUrls');
   }
 
   void _log(String message) {
@@ -63,45 +93,60 @@ class RobustWebSocketService {
     _updateStatus('🔗 Tentando conectar ao servidor: $_serverUrl');
 
     try {
-      final uri = Uri.parse(_serverUrl);
-      _log('URI parseada: $uri');
-
-      final socket = await WebSocket.connect(
-        uri.toString(),
-        compression: CompressionOptions.compressionOff,
-      );
-      _log('Socket criado com sucesso');
-
-      _channel = IOWebSocketChannel(socket);
-      _isConnected = true;
-      _reconnectAttempts = 0;
-
-      _updateStatus('🎉 Conectado com sucesso ao servidor');
-      onConnected?.call();
-
-      _startHeartbeat();
-
-      _channel!.stream.listen(
-        (data) {
-          _log('📨 Dados recebidos do servidor');
-          _lastMessageReceived = DateTime.now();
-          _handleMessage(data);
-        },
-        onError: (error) {
-          _log('❌ Erro na conexão: $error');
-          _handleDisconnection('Erro na conexão: $error');
-        },
-        onDone: () {
-          _log('🔌 Conexão fechada pelo servidor');
-          _handleDisconnection('Conexão fechada pelo servidor');
-        },
-      );
+      await _attemptConnectToCandidates();
     } catch (e) {
       _log('❌ Erro ao conectar: $e');
       _updateStatus('💡 Verifique se o servidor está rodando e acessível');
       onError?.call(e.toString());
       _scheduleReconnect();
     }
+  }
+
+  Future<void> _attemptConnectToCandidates() async {
+    final tried = <String>[];
+    for (final url in _candidateUrls) {
+      try {
+        _log('Tentando URL candidata: $url');
+        final uri = Uri.parse(url);
+        final socket = await WebSocket.connect(
+          uri.toString(),
+          compression: CompressionOptions.compressionOff,
+        );
+        _log('Socket criado com sucesso em $url');
+        _serverUrl = url; // fixa a bem-sucedida
+        _channel = IOWebSocketChannel(socket);
+        _isConnected = true;
+        _reconnectAttempts = 0;
+
+        _updateStatus('🎉 Conectado com sucesso ao servidor');
+        onConnected?.call();
+
+        _startHeartbeat();
+
+        _channel!.stream.listen(
+          (data) {
+            _log('📨 Dados recebidos do servidor');
+            _lastMessageReceived = DateTime.now();
+            _handleMessage(data);
+          },
+          onError: (error) {
+            _log('❌ Erro na conexão: $error');
+            _handleDisconnection('Erro na conexão: $error');
+          },
+          onDone: () {
+            _log('🔌 Conexão fechada pelo servidor');
+            _handleDisconnection('Conexão fechada pelo servidor');
+          },
+        );
+        return; // sucesso
+      } catch (e) {
+        tried.add('$url -> $e');
+        _log('Falha na candidata $url: $e');
+        // tenta próxima
+      }
+    }
+    // se chegou aqui, todas falharam
+    throw Exception('Falha ao conectar. Tentativas: ${tried.join(' | ')}');
   }
 
   void _handleDisconnection(String reason) {
