@@ -13,13 +13,10 @@ class RobustWebSocketService {
   WebSocketChannel? _channel;
   bool _isConnected = false;
   String _serverUrl = 'ws://quadro-elevador:8765';
-  List<String> _candidateUrls = [
-    'ws://quadro-elevador:8765',
-    'ws://quadro-elevador.local:8765'
-  ];
+  List<String> _candidateUrls = ['ws://quadro-elevador:8765'];
   int _reconnectAttempts = 0;
-  int _maxReconnectAttempts = 999999; // efetivamente infinito
-  int _reconnectDelay = 2000; // base em ms
+  int _maxReconnectAttempts = 999999;
+  int _reconnectDelay = 2000;
   Timer? _heartbeatTimer;
   Timer? _reconnectTimer;
   bool _shouldReconnect = true;
